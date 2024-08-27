@@ -7,6 +7,8 @@
 <body>
 <h1>ECE46100 - Team Project Repository</h1>
 <h2>Contributors</h2>
-<p>Garrett Phillips</p>
+<ul>
+    <li>Garrett Phillips</li>
+</ul>
 
 </body>
