@@ -10,6 +10,7 @@
 <ul>
     <li>Garrett Phillips</li>
     <li>Nilayah Peter</li>
+    <li>Riley Thomas</li>
 </ul>
 
 
