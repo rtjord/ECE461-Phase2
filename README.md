@@ -9,6 +9,8 @@
 <h2>Contributors</h2>
 <ul>
     <li>Garrett Phillips</li>
+    <li>Nilayah Peter</li>
 </ul>
+
 
 </body>
