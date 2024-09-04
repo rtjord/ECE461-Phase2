@@ -1,0 +1,6 @@
+## Sensitive Files ##
+files/
+
+## Package Files ##
+package-lock.json
+node_modules/
