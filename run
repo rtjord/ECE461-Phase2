@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#install function, add more dependencies as necessary 
+install() {
+    npm install
+}
+
+#if the first argument is install then run npm install
+if [ "$1" = "install" ]; then
+    echo "Starting install..."
+    install #call install function
+    echo "Installation complete"
+    exit 0
+else
+    #if the first argument is not install, throw error
+    echo "Command not valid"
+    exit 1
+fi  # end if
