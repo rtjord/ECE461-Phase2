@@ -1,18 +1,15 @@
 #!/bin/bash
 
-#install function, add more dependencies as necessary 
-install() {
-    npm install
-}
-
 #if the first argument is install then run npm install
 if [ "$1" = "install" ]; then
     echo "Starting install..."
-    install #call install function
-    echo "Installation complete"
+    npm install
+    #add any other dependencies needed here
     exit 0
+elif [[ "$1" =~ ^https?:// ]]; then #check if the first argument is a URL or test
+    node ./src/index.ts "$1" # Execute index.ts
 else
-    #if the first argument is not install, throw error
+    #if the first argument is not install or a URL, throw error
     echo "Command not valid"
     exit 1
 fi  # end if
