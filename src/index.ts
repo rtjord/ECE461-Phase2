@@ -1,5 +1,7 @@
 import { Command } from 'commander';
+import dotenv from 'dotenv';
 
+dotenv.config();
 const program = new Command();
 
 program
@@ -15,7 +17,7 @@ program
 
 program
     .argument('<URL_FILE>', 'File containing URLs to analyze')
-    .action((urlFile: string) => {
+    .action((urlFile: string[]) => {
         console.log('Analyzing URLs from file: ${urlFile}');
     });
 
