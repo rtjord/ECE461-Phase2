@@ -1,44 +1,86 @@
 import { urlAnalysis } from './urlOps';
+import { repoData, npmData } from './interfaces';
 import { gitAnalysis, npmAnalysis } from './api';
 
-export async function evaluateMods(urls: string[], token: string) {
-    if (!token) {
-        //log error
-        console.error('No token provided');
-        process.exit(1);
-      }
+export class runAnalysis {
+    private npmAnalysis: npmAnalysis;
+    private gitAnalysis: gitAnalysis;
+    private urlAnalysis: urlAnalysis;
 
-    //const Promise = require('bluebird');
-    //const connectionsAndCommunicators = await Promise.map(urls, async (url: string) => {
-    for (const url of urls) {
-        const analysis = new urlAnalysis();
-        try {
-            const [type, resultUrl] = await analysis.evalUrl(url);
-            if (type == 0) { // GitHub url
-                console.log('GitHub URL: ', resultUrl);
-            } else if (type == 1) { //NPM url
-                console.log('NPM URL: ', resultUrl);
-                if (resultUrl == '') {
-                    console.error('Invalid URL');
-                    continue;
-                }
-                const npmClass = new npmAnalysis();
-                await npmClass.runTasks(resultUrl);
-            } else { //log error
-                console.error('Invalid URL');
-                process.exit(1);
-            }
-        } catch (error) {
-            console.error('Error evaluating URL:', error);
-        } 
+    constructor() {
+        this.npmAnalysis = new npmAnalysis();
+        this.gitAnalysis = new gitAnalysis();
+        this.urlAnalysis = new urlAnalysis();
+    }
+
+    async runAnalysis(urls: string[], token: string): Promise<repoData[]> {
+        if (!token) {
+            //log error
+            console.error('No token provided');
+            process.exit(1);
+        }
+        // call gitAnalysis and check if the token is valid
+            // CHECK HERE using this.gitAnalysis.blahblah()
+        
+        const repoDataPromises = urls.map(url => this.evaluateMods(url, token));
+        // Use Promise.all to wait for all promises to resolve in parallel
+        const repoDataArr = await Promise.all(repoDataPromises);
+        for (const repo of repoDataArr) {
+            console.log(repo);
+        }
+        return repoDataArr;
+    }
+
+    async evaluateMods(url: string, token: string): Promise<repoData> {
+        const [type, cleanedUrl] = await this.urlAnalysis.evalUrl(url);
+        console.log('Type:', type, 'Cleaned URL:', cleanedUrl);
+        if (type === -1) {
+            //log error
+            console.error('Invalid URL:', url);
+            const repoData: repoData = {
+                repoName: '',
+                repoUrl: url,
+                repoOwner: '',
+                numberOfContributors: -1,
+                numberOfOpenIssues: -1,
+                numberOfClosedIssues: -1,
+                timeSinceLastCommit: '',
+                licenses: [],
+                numberOfCommits: -1,
+                numberOfLines: -1
+            };
+            return repoData;
+        }
+        //const gitData = await this.gitAnalysis.runTasks(cleanedUrl, token);
+        //const npmData = await this.npmAnalysis.runTasks(cleanedUrl);
+        const [npmData, gitData] = await Promise.all([
+            await this.npmAnalysis.runTasks(cleanedUrl),
+            await this.gitAnalysis.runTasks(cleanedUrl, token)
+        ]);
+
+        const repoData: repoData = {
+            repoName: gitData.repoName,
+            repoUrl: cleanedUrl,
+            repoOwner: gitData.repoOwner,
+            numberOfContributors: npmData.numberOfContributors,
+            numberOfOpenIssues: gitData.numberOfOpenIssues,
+            numberOfClosedIssues: gitData.numberOfClosedIssues,
+            timeSinceLastCommit: gitData.timeSinceLastCommit,
+            licenses: gitData.licenses,
+            numberOfCommits: gitData.numberOfCommits,
+            numberOfLines: gitData.numberOfLines
+        };
+
+        return repoData;
     }
 }
 
 const exFileLog = [
     "https://github.com/nullivex/nodist",
-    "https://www.npmjs.com/package/express",
-    "https://github.com/lodash/lodash",
-    "https://www.npmjs.com/package/browserify",
+    //"https://www.npmjs.com/package/express",
+    //"https://github.com/lodash/lodash",
+    //"https://www.npmjs.com/package/browserify",
 ];
 
-evaluateMods(exFileLog, 'token');
+const runAnalysisClass = new runAnalysis();
+runAnalysisClass.runAnalysis(exFileLog, 'GITHUB_TOKEN');

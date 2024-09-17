@@ -10,7 +10,7 @@ export class urlAnalysis {
         } else if (npmPattern.test(url)) {
             try {
                 const repoUrl = await this.getRepositoryUrl(url);
-                return [1, repoUrl || ''];  // Ensure we return an empty string if repoUrl is null
+                return [0, repoUrl || ''];  // Ensure we return an empty string if repoUrl is null
             } catch (error) {
                 console.error('Error fetching repository URL:', error);
                 return [-1, ''];  // Return error code and empty string on failure
