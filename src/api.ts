@@ -279,10 +279,22 @@ export class gitAnalysis {
     //retrieve data for liscense
     async fetchLicense(gitData: gitData): Promise<void> {
         console.log('Fetching license...');
+        const approved_license = ['MIT License', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
         try {
             // Fetch license information
             const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/license`);
-            gitData.licenses = response.data.license.name;
+            let license = response.data.license.name;
+            if (!approved_license.includes(license)) { //Checks if license content has approved licenses
+                const licenseContentEncoded = response.data.content; // Extract the license content (base64 encoded)
+                const licenseContent = Buffer.from(licenseContentEncoded, 'base64').toString('utf-8'); // Decode the base64 content
+                for (let element of approved_license) {
+                    if (licenseContent.includes(element)){
+                        license = element;
+                        break
+                    }
+                }
+            }
+            gitData.licenses = license;
             console.log('License name:', gitData.licenses);
             return;
         } catch (error) {
@@ -326,6 +338,38 @@ export class gitAnalysis {
     async fetchLines(gitData: gitData): Promise<void> {
         console.log('Fetching lines of code...');
 
+        // Helper for determining if it's a file or directory
+        const processDirorFile = async (file: any): Promise<number> => {
+            let result = 0;
+
+            if (file.type === 'file') {
+                try {
+                    const fileResponse = await this.axiosInstance.get(file.download_url);
+                    result += fileResponse.data.split('\n').length;
+                    return result;
+                } catch (error) {
+                    // console.error('Error fetching file content:', error);
+                    return result;
+                }
+            } else if (file.type === "dir") {
+                try {
+                    const directoryResponse = await this.axiosInstance.get(file.url); // Fetch directory contents
+                    const directoryFiles = directoryResponse.data;
+
+                    const filePromises = directoryFiles.map(processDirorFile);
+                    const fileLines = await Promise.all(filePromises);
+
+                    result += fileLines.reduce((sum, value) => sum + value, 0);
+                    return result;
+                } catch (error) {
+                    console.error('Error fetching directory contents:', error);
+                    return result;
+                }
+            }
+
+            return result; // If not a file or directory
+        }
+
         try {
             let totalLines = 0;
 
@@ -336,27 +380,17 @@ export class gitAnalysis {
 
             const files = response.data;
 
-            // Process each file
-            const filePromises = files.map(async (file: any) => {
-                if (file.type === 'file') {
-                    try {
-                        const fileResponse = await axios.get(file.download_url);
-                        return fileResponse.data.split('\n').length;
-                    } catch (error) {
-                        // console.error('Error fetching file content:', error);
-                        return;
-                    }
-                }
-                return;
-            });
-
+            // Process each file or directory
+            const filePromises = files.map(processDirorFile);
             const fileLines = await Promise.all(filePromises);
-            totalLines += fileLines.reduce((sum, value) => sum + value, 0);
+
+            // Sum up all the lines of code
+            totalLines = fileLines.reduce((sum, value) => sum + value, 0);
             gitData.numberOfLines = totalLines;
+
             console.log('Total lines of code:', gitData.numberOfLines);
-            return;
         } catch (error) {
-            console.error(error);
+            console.error('Error fetching repository files:', error);
         }
     }
 
@@ -379,17 +413,20 @@ export class gitAnalysis {
             returns whatever is needed.
             */
         // Run each function sequentially
-        await this.checkConnection(url);
-        await this.getOwnerAndRepo(gitData);
-        await this.fetchContributors(gitData);
-        await this.fetchOpenIssues(gitData);
-        await this.fetchClosedIssues(gitData); //CURRENTLY NOT WORKING FOR ONE OF THE URLS or slow
-        //await this.fetchLastCommit(owner,repo);
-        await this.fetchLicense(gitData); //take another way
-        await this.fetchCommits(gitData); //slow
-        await this.fetchLines(gitData); //error for some files (currently not printing error)
-
-        console.log('All git tasks completed in order');
+        if (await this.checkConnection(url)) {
+            await this.getOwnerAndRepo(gitData);
+            await this.fetchContributors(gitData);
+            await this.fetchOpenIssues(gitData);
+            await this.fetchClosedIssues(gitData); //CURRENTLY NOT WORKING FOR ONE OF THE URLS or slow
+            //await this.fetchLastCommit(owner,repo);
+            await this.fetchLicense(gitData); //take another way
+            await this.fetchCommits(gitData); //slow
+            await this.fetchLines(gitData); //error for some files (currently not printing error)
+    
+            console.log('All git tasks completed in order');
+            return gitData;
+        }
+        console.log("No git tasks completed. Invalid URL.")
         return gitData;
     }
 }
