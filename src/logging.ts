@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import * as path from 'path';
+import { envVars } from './utils/interfaces';
 
 export enum LogLevel {
     SILENT = 0,
