@@ -20,7 +20,7 @@ if [ -f "$1" ]; then #check if the file exists
         echo "LOG_LEVEL is not set"
         exit 1
     fi
-    node ./src/scripts.js "$1" # Execute scripts.ts
+    node ./srcJS/scripts.js "$1" # Execute scripts.ts
     exit 0
 fi 
 
