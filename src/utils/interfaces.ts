@@ -31,3 +31,8 @@ export interface npmData {
     lastCommitDate: string;
     documentation: documentationData;
 }
+
+export interface envVars {
+    logLevel: number;
+    logPath: string;
+}
