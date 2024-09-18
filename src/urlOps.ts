@@ -56,7 +56,7 @@ export class urlAnalysis {
                             repoUrl = repoUrl.replace(/^git\+/, '');
                             repoUrl = repoUrl.replace(/\.git$/, '');
                             // Convert SSH URLs to HTTPS
-                            repoUrl = repoUrl.replace(/^ssh:\/\/git@github\.com/, 'https://github.com/');
+                            repoUrl = repoUrl.replace(/^ssh:\/\/git@github\.com/, 'https://github.com');
                             resolve(repoUrl);
                         } else {
                             resolve(null);  // No repository URL found

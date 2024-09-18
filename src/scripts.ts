@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { urlAnalysis } from './urlOps';
-import { repoData, npmData } from './interfaces';
+import { repoData, gitData, npmData } from './utils/interfaces';
 import { gitAnalysis, npmAnalysis } from './api';
 
 export class runAnalysis {
@@ -41,21 +41,30 @@ export class runAnalysis {
     async evaluateMods(url: string): Promise<repoData> {
         const [type, cleanedUrl] = await this.urlAnalysis.evalUrl(url);
         console.log('Type:', type, 'Cleaned URL:', cleanedUrl);
+        let repoData: repoData = {
+            repoName: '',
+            repoUrl: url,
+            repoOwner: '',
+            numberOfContributors: -1,
+            numberOfOpenIssues: -1,
+            numberOfClosedIssues: -1,
+            lastCommitDate: '',
+            licenses: [],
+            numberOfCommits: -1,
+            numberOfLines: -1,
+            documentation: {
+                hasReadme: false,
+                numLines: -1,
+                hasToc: false,
+                hasInstallation: false,
+                hasUsage: false,
+                hasExamples: false,
+                hasDocumentation: false
+            }
+        };
         if (type === -1 || cleanedUrl === '') {
             //log error
             console.error('Invalid URL:', url);
-            const repoData: repoData = {
-                repoName: '',
-                repoUrl: url,
-                repoOwner: '',
-                numberOfContributors: -1,
-                numberOfOpenIssues: -1,
-                numberOfClosedIssues: -1,
-                timeSinceLastCommit: '',
-                licenses: [],
-                numberOfCommits: -1,
-                numberOfLines: -1
-            };
             return repoData;
         }
         //const gitData = await this.gitAnalysis.runTasks(cleanedUrl, token);
@@ -66,17 +75,26 @@ export class runAnalysis {
             await this.gitAnalysis.runTasks(cleanedUrl)
         ]);
 
-        const repoData: repoData = {
+        repoData = {
             repoName: gitData.repoName,
             repoUrl: cleanedUrl,
             repoOwner: gitData.repoOwner,
-            numberOfContributors: npmData.numberOfContributors,
+            numberOfContributors: gitData.numberOfContributors,
             numberOfOpenIssues: gitData.numberOfOpenIssues,
             numberOfClosedIssues: gitData.numberOfClosedIssues,
-            timeSinceLastCommit: gitData.timeSinceLastCommit,
+            lastCommitDate: npmData.lastCommitDate,
             licenses: gitData.licenses,
             numberOfCommits: gitData.numberOfCommits,
-            numberOfLines: gitData.numberOfLines
+            numberOfLines: gitData.numberOfLines,
+            documentation: {
+                hasReadme: npmData.documentation.hasReadme,
+                numLines: npmData.documentation.numLines,
+                hasToc: npmData.documentation.hasToc,
+                hasInstallation: npmData.documentation.hasInstallation,
+                hasUsage: npmData.documentation.hasUsage,
+                hasExamples: npmData.documentation.hasExamples,
+                hasDocumentation: npmData.documentation.hasDocumentation
+            }
         };
 
         return repoData;
@@ -86,8 +104,8 @@ export class runAnalysis {
 dotenv.config({ path: '../keys.env' });
 
 const exFileLog = [
-    //"https://github.com/nullivex/nodist",
-    "https://www.npmjs.com/package/express",
+    "https://github.com/nullivex/nodist",
+    //"https://www.npmjs.com/package/express",
     //"https://github.com/lodash/lodash",
     //"https://www.npmjs.com/package/browserify",
 ];

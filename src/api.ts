@@ -2,9 +2,7 @@ import * as fs from 'fs/promises';
 import * as git from 'isomorphic-git';
 import * as http from 'isomorphic-git/http/node';
 import axios, { AxiosInstance } from 'axios';
-import dotenv from 'dotenv';
-
-import { repoData, npmData } from './interfaces';
+import { gitData, npmData } from './utils/interfaces';
 
 export class npmAnalysis {
 
@@ -32,20 +30,61 @@ export class npmAnalysis {
         }
     }
 
-    async findNumContributors(dir: string): Promise<number> {
-        console.log('Finding number of authors...');
-        // Iterate over commits and collect author information
-        try {
-            const commits = await git.log({ fs, dir });
-            const contributors = new Set(commits.map((commit) => commit.commit.author.name));
-            console.log('Number of authors:', contributors.size);
-            return contributors.size;
-        } catch (err) {
-            console.error('Error finding number of contributors:', err);
-            return -1;
+    /* BUGGY, SOMETIMES DOESN'T FIND README IF THERE ISN'T A README.md FILE. ACCOUNT FOR URL.#readme? */
+    async getReadmeContent(dir: string, npmData: npmData): Promise<void> {
+        const oid = await git.resolveRef({ fs, dir, ref: 'HEAD' });
+        const { tree } = await git.readTree({ fs, dir, oid });
+        const readmeEntry = tree.find(entry => entry.path.toLowerCase() === 'readme.md');
+
+        if (!readmeEntry) {
+          console.log('README.md not found in the repository.');
+          return;
         }
+        npmData.documentation.hasReadme = true;
+      
+        const readmeBlob = await git.readBlob({ fs, dir, oid: readmeEntry.oid });
+        const readmeContent = new TextDecoder().decode(readmeBlob.blob);
+/*
+        const headerRegex = (header: string) => new RegExp(`^# ${header}`, 'i'); // Main header (H1)
+        const subHeaderRegex = (header: string) => new RegExp(`^## ${header}`, 'i'); // Subheader (H2)
+    
+        // Check if the content includes the headers
+        npmData.documentation.numLines = readmeContent.split('\n').length;
+        npmData.documentation.hasToc = headerRegex('Table of Contents').test(readmeContent);
+        npmData.documentation.hasInstallation = subHeaderRegex('Installation').test(readmeContent);
+        npmData.documentation.hasUsage = subHeaderRegex('Usage').test(readmeContent);
+        npmData.documentation.hasExamples = subHeaderRegex('Examples').test(readmeContent);
+        npmData.documentation.hasDocumentation = subHeaderRegex('Documentation').test(readmeContent);
+*/
+        npmData.documentation.numLines = readmeContent.split('\n').length;
+        npmData.documentation.hasToc = /[Tt]able of [Cc]ontents/i.test(readmeContent);
+        npmData.documentation.hasInstallation = /[Ii]nstall/i.test(readmeContent);
+        npmData.documentation.hasUsage = /[Uu]sage/i.test(readmeContent);
+        npmData.documentation.hasExamples = /[Ee]xamples/i.test(readmeContent);
+        npmData.documentation.hasDocumentation = /[Dd]ocumentation/i.test(readmeContent) || /[Dd]ocs/i.test(readmeContent);
+        
+        return;
     }
 
+    async findTimeSinceLastCommit(dir: string, npmData: npmData): Promise<void> {
+        console.log('Finding time since last commit...');
+        try {
+            const commits = await git.log({ fs, dir, depth: 1 });
+            const lastCommit = commits[0]; 
+        
+            if (lastCommit) {
+              const lastCommitDate = new Date(lastCommit.commit.author.timestamp * 1000);
+              npmData.lastCommitDate = lastCommitDate.toDateString();;
+              return;
+            } else {
+              console.log('No commits found in the repository.');
+              return;
+            }
+          } catch (err) {
+            console.error('Error retrieving the last commit:', err);
+            return;
+          }
+    }
     
     async deleteRepo(dir: string): Promise<void> {
         console.log('Deleting repository...');
@@ -62,15 +101,21 @@ export class npmAnalysis {
         const repoDir = './repoDir'+dest.toString();
         let npmData: npmData = {
             repoUrl: url,
-            numberOfContributors: 0
+            lastCommitDate: '',
+            documentation: {
+                hasReadme: false,
+                numLines: -1,
+                hasToc: false,
+                hasInstallation: false,
+                hasUsage: false,
+                hasExamples: false,
+                hasDocumentation: false,
+            }
         };
 
         await this.cloneRepo(url, repoDir);
-        //const numberOfCommits = await this.getCommitHistory(repoDir);
-        //repoData.numberOfCommits = numberOfCommits;
-        
-        // Find number of authors
-        npmData.numberOfContributors = await this.findNumContributors(repoDir);
+        await this.findTimeSinceLastCommit(repoDir, npmData);
+        await this.getReadmeContent(repoDir, npmData);
         await this.deleteRepo(repoDir);
     
         console.log('All npm tasks completed in order');
@@ -113,57 +158,41 @@ export class gitAnalysis {
     }
 
     //parse owner from url
-    async getOwner(url: string): Promise<string> {
-        if (!url) {
+    async getOwnerAndRepo(gitData: gitData): Promise<void> {
+        if (!gitData.repoUrl) {
             console.error('Invalid URL');
-            return "";
+            return;
         }
 
-        const urlParts = url.split('/');
+        const urlParts = gitData.repoUrl.split('/');
         if (urlParts.length >= 5) {
-            const owner = urlParts[3]; // Extract owner name
-            console.log(`Owner parsed from URL: ${owner}`);
-            return owner;
+            gitData.repoOwner = urlParts[3]; // Extract owner name
+            console.log(`Owner parsed from URL: ${gitData.repoOwner}`);
+            gitData.repoName = urlParts[4]; // Extract repository name
+            console.log(`Repository parsed from URL: ${gitData.repoName}`);
+            return;
         } else {
             console.error('Invalid GitHub repository URL format.');
-            return "";
-        }
-    }
-
-    //parse repo from url
-    async getRepo(url: string): Promise<string> {
-        if (!url) {
-            console.error('Invalid URL');
-            return "";
-        }
-
-        const urlParts = url.split('/');
-        if (urlParts.length >= 5) {
-            const repo = urlParts[4]; // Extract repository name
-            console.log(`Repository parsed from URL: ${repo}`);
-            return repo;
-        } else {
-            console.error('Invalid GitHub repository URL format.');
-            return "";
+            return;
         }
     }
 
     //retrieve data by calling correct endpoints
     //retrieve data for open issues
-    async fetchOpenIssues(owner: string, repo: string): Promise<any> {
+    async fetchOpenIssues(gitData: gitData): Promise<void> {
         console.log('Fetching open issues...');
         try {
-            const issues = await this.axiosInstance.get(`/repos/${owner}/${repo}`); //get request and await response
-            const data = issues.data.open_issues_count; //grab the data
-            console.log('Open Issues fetched successfully:', data);
-            return data
+            const issues = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}`); //get request and await response
+            gitData.numberOfOpenIssues = issues.data.open_issues_count; //grab the data
+            console.log('Open Issues fetched successfully:', gitData.numberOfOpenIssues);
+            return;
         } catch (error) {
             console.error(error);
         }
     }
 
     //retrieve data for closed issues
-    async fetchClosedIssues(owner: string, repo: string): Promise<any> {
+    async fetchClosedIssues(gitData: gitData): Promise<void> {
         console.log('Fetching closed issues...');
         try {
             let page = 1;
@@ -172,7 +201,7 @@ export class gitAnalysis {
 
             do {
                 // Fetch a page of closed issues
-                const response = await this.axiosInstance.get(`/repos/${owner}/${repo}/issues`, {
+                const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/issues`, {
                     params: {
                         state: 'closed',
                         per_page: 100,   // Max per page
@@ -186,25 +215,26 @@ export class gitAnalysis {
             } while (issues.length > 0); // Continue until no more issues are returned
 
             console.log('Closed Issues Count fetched successfully:', totalClosedIssues);
-            return totalClosedIssues;
+            gitData.numberOfClosedIssues = totalClosedIssues;
+            return;
         // try {
         //     const response = await this.axiosInstance.get('https://api.github.com/search/issues', {
         //         params: {
-        //             q: `repo:${owner}/${repo} state:closed`
+        //             q: `repo:${gitData.repoOwner}/${gitData.repoName} state:closed`
         //         }
         //     });
 
         //     // Extract and return the total count of closed issues
-        //     const closedIssuesCount = response.data.total_count;
-        //     console.log('Closed Issues Count fetched successfully:', closedIssuesCount);
-        //     return closedIssuesCount;
+        //     gitData.numberOfClosedIssues = response.data.total_count;
+        //     console.log('Closed Issues Count fetched successfully:', gitData.numberOfClosedIssues);
+        //     return;
         } catch (error) {
             console.error(error);
         }
     }
 
     //retrieve data for number of contributors
-    async fetchContributors(owner: string, repo: string): Promise<any> {
+    async fetchContributors(gitData: gitData): Promise<void> {
         console.log('Fetching contributors...');
         try {
             // Initialize variables
@@ -214,7 +244,7 @@ export class gitAnalysis {
 
             // Fetch contributors with pagination
             while (hasMorePages) {
-                const response = await this.axiosInstance.get(`/repos/${owner}/${repo}/contributors`, {
+                const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/contributors`, {
                     params: {
                         per_page: 100,  // Fetch up to 100 contributors per page
                         page: page
@@ -229,60 +259,29 @@ export class gitAnalysis {
             }
 
             console.log('Contributors Count fetched successfully:', contributorsCount);
-            return contributorsCount;
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    //retrieve data for time since last commit
-    async fetchLastCommit(owner: string, repo: string): Promise<any> {
-        console.log('Fetching last commit...');
-        try {
-            // Fetch the latest commit
-            const response = await this.axiosInstance.get(`/repos/${owner}/${repo}/commits`, {
-                params: {
-                    per_page: 1, // Get only the latest commit
-                    page: 1
-                }
-            });
-
-            // Ensure the response contains data
-            if (response.data.length === 0) {
-                console.error('No commits found for this repository.');
-                return null;
-            }
-
-            // Get the timestamp of the most recent commit
-            const latestCommitDate = new Date(response.data[0].commit.committer.date);
-            const formattedDate = latestCommitDate.toUTCString(); // Format date in UTC format
-
-            console.log('Last commit date:', formattedDate);
-            return formattedDate;
+            gitData.numberOfContributors = contributorsCount;
+            return;
         } catch (error) {
             console.error(error);
         }
     }
 
     //retrieve data for liscense
-    async fetchLicense(owner: string, repo: string): Promise<any> {
+    async fetchLicense(gitData: gitData): Promise<void> {
         console.log('Fetching license...');
         try {
             // Fetch license information
-            const response = await this.axiosInstance.get(`/repos/${owner}/${repo}/license`);
-
-            // Extract license name
-            const licenseName = response.data.license.name;
-
-            console.log('License name:', licenseName);
-            return licenseName;
+            const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/license`);
+            gitData.licenses = response.data.license.name;
+            console.log('License name:', gitData.licenses);
+            return;
         } catch (error) {
             console.error(error);
         }
     }
 
     //retrieve data for number of commits
-    async fetchCommits(owner: string, repo: string): Promise<any> {
+    async fetchCommits(gitData: gitData): Promise<void> {
         console.log('Fetching commits...');
         try {
             // Initialize count
@@ -291,7 +290,7 @@ export class gitAnalysis {
             let hasMoreCommits = true;
 
             while (hasMoreCommits) {
-                const response = await this.axiosInstance.get(`/repos/${owner}/${repo}/commits`, {
+                const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/commits`, {
                     params: {
                         per_page: 100, // Max number of commits per page
                         page: page
@@ -305,22 +304,23 @@ export class gitAnalysis {
                 hasMoreCommits = response.data.length === 100;
                 page++;
             }
-            console.log('Total number of commits:', totalCommits);
-            return totalCommits;
+            gitData.numberOfCommits = totalCommits;
+            console.log('Total number of commits:', gitData.numberOfCommits);
+            return;
         } catch (error) {
             console.error(error);
         }
     }
 
     //retrieve total number of lines
-    async fetchLines(owner: string, repo: string): Promise<any> {
+    async fetchLines(gitData: gitData): Promise<void> {
         console.log('Fetching lines of code...');
 
         try {
             let totalLines = 0;
 
             // Fetch the list of files in the root directory
-            const response = await this.axiosInstance.get(`/repos/${owner}/${repo}/contents`, {
+            const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/contents`, {
                 params: { per_page: 100 } // Adjust as needed
             });
 
@@ -334,55 +334,30 @@ export class gitAnalysis {
                         return fileResponse.data.split('\n').length;
                     } catch (error) {
                         // console.error('Error fetching file content:', error);
-                        return 0;
+                        return;
                     }
                 }
-                return 0;
+                return;
             });
 
             const fileLines = await Promise.all(filePromises);
             totalLines += fileLines.reduce((sum, value) => sum + value, 0);
-
-        console.log('Total lines of code:', totalLines);
-        return totalLines;
+            gitData.numberOfLines = totalLines;
+            console.log('Total lines of code:', gitData.numberOfLines);
+            return;
         } catch (error) {
             console.error(error);
         }
     }
 
-    //return data
-    async parseData(data : any) {
-        return { //returned the parsed data
-            url: data.html_url,
-            description: data.description,
-
-            //correctness -> open issues and closed issues
-            open_issues: data.open_issues_count,
-
-            //ramp up -> documentation present, lines of code, amount of users using
-            subscribers_count: data.subscribers_count,
-            network_count: data.network_count,
-            size: data.size,
-
-            //responsive manner -> issue resolution time and time since last commit
-            created: data.created_at,
-            updated: data.updated_at,
-            
-            //license -> liscense present
-            liscense: data.liscense,
-            
-        };
-    }
-
-    async runTasks(url: string): Promise<repoData> {
-        let repoData: repoData = {
+    async runTasks(url: string): Promise<gitData> {
+        let gitData: gitData = {
             repoName: '',
             repoUrl: url,
             repoOwner: '',
             numberOfContributors: 0,
             numberOfOpenIssues: 0,
             numberOfClosedIssues: 0,
-            timeSinceLastCommit: '',
             licenses: [],
             numberOfCommits: 0,
             numberOfLines: 0
@@ -395,20 +370,16 @@ export class gitAnalysis {
             */
         // Run each function sequentially
         await this.checkConnection(url);
-        const owner = await this.getOwner(url);
-        repoData.repoOwner = owner;
-        const repo = await this.getRepo(url);
-        repoData.repoName = repo;
-        //await this.fetchContributors(owner,repo);
-        repoData.numberOfContributors = await this.fetchContributors(owner,repo);
-        repoData.numberOfOpenIssues = await this.fetchOpenIssues(owner, repo);
-        repoData.numberOfClosedIssues = await this.fetchClosedIssues(owner, repo); //CURRENTLY NOT WORKING FOR ONE OF THE URLS or slow
-        repoData.timeSinceLastCommit = await this.fetchLastCommit(owner,repo);
-        repoData.licenses = await this.fetchLicense(owner, repo); //name not returning specfic license sometimes
-        repoData.numberOfCommits = await this.fetchCommits(owner, repo); //slow
-        repoData.numberOfLines = await this.fetchLines(owner, repo); //error for some files (currently not printing error)
+        await this.getOwnerAndRepo(gitData);
+        await this.fetchContributors(gitData);
+        await this.fetchOpenIssues(gitData);
+        await this.fetchClosedIssues(gitData); //CURRENTLY NOT WORKING FOR ONE OF THE URLS or slow
+        //await this.fetchLastCommit(owner,repo);
+        await this.fetchLicense(gitData); //name not returning specfic license sometimes
+        await this.fetchCommits(gitData); //slow
+        await this.fetchLines(gitData); //error for some files (currently not printing error)
 
         console.log('All git tasks completed in order');
-        return repoData;
+        return gitData;
     }
 }
