@@ -243,22 +243,11 @@ export class gitAnalysis {
                 issues = response.data;
                 totalClosedIssues += issues.length;
                 page++;
-            } while (issues.length > 0); // Continue until no more issues are returned
+            } while ((gitData.numberOfOpenIssues * 2) >= totalClosedIssues && issues.length > 0); // Continue until open issues is 1/2 of the closed issues or last closed issue
 
             console.log('Closed Issues Count fetched successfully:', totalClosedIssues);
             gitData.numberOfClosedIssues = totalClosedIssues;
             return;
-        // try {
-        //     const response = await this.axiosInstance.get('https://api.github.com/search/issues', {
-        //         params: {
-        //             q: `repo:${gitData.repoOwner}/${gitData.repoName} state:closed`
-        //         }
-        //     });
-
-        //     // Extract and return the total count of closed issues
-        //     gitData.numberOfClosedIssues = response.data.total_count;
-        //     console.log('Closed Issues Count fetched successfully:', gitData.numberOfClosedIssues);
-        //     return;
         } catch (error) {
             console.error(error);
         }
@@ -406,7 +395,7 @@ export class gitAnalysis {
         await this.fetchOpenIssues(gitData);
         await this.fetchClosedIssues(gitData); //CURRENTLY NOT WORKING FOR ONE OF THE URLS or slow
         //await this.fetchLastCommit(owner,repo);
-        await this.fetchLicense(gitData); //name not returning specfic license sometimes
+        await this.fetchLicense(gitData); //take another way
         await this.fetchCommits(gitData); //slow
         await this.fetchLines(gitData); //error for some files (currently not printing error)
 
