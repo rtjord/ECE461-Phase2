@@ -1,18 +1,35 @@
 #!/bin/bash
 
-#install function, add more dependencies as necessary 
-install() {
-    npm install
-}
-
 #if the first argument is install then run npm install
 if [ "$1" = "install" ]; then
     echo "Starting install..."
-    install #call install function
-    echo "Installation complete"
+    npm install
+    npm install dotenv
+    tsc
+    #add any other dependencies needed here
     exit 0
-else
-    #if the first argument is not install, throw error
-    echo "Command not valid"
-    exit 1
-fi  # end if
+fi
+
+if [ -f "$1" ]; then #check if the file exists
+    export $(grep -v '^#' .env | xargs)
+    if [ -z "$GITHUB_TOKEN" ]; then #check if the CLOUDINARY_URL is not defined
+        echo "GITHUB_TOKEN is not set"
+        exit 1
+    fi
+    if [ -z "$LOG_LEVEL" ]; then #check if the LOG_LEVEL is not defined
+        echo "LOG_LEVEL is not set"
+        exit 1
+    fi
+    node ./srcJS/scripts.js "$1" # Execute scripts.ts
+    exit 0
+fi 
+
+if [ "$1" = "test" ]; then #check if the first argument is test
+    #call test suite here
+    echo "test"
+    exit 0
+fi
+
+#if the first argument is not install, a vaild file, or test, throw error
+echo "Command not valid"
+exit 1

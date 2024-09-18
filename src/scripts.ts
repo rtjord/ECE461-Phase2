@@ -2,6 +2,8 @@ import dotenv from 'dotenv';
 import { urlAnalysis } from './urlOps';
 import { repoData } from './utils/interfaces';
 import { gitAnalysis, npmAnalysis } from './api';
+import * as fs from 'fs';
+import * as readline from 'readline';
 
 export class runAnalysis {
     private npmAnalysis: npmAnalysis;
@@ -14,6 +16,24 @@ export class runAnalysis {
         this.npmAnalysis = new npmAnalysis();
         this.gitAnalysis = new gitAnalysis(token);
         this.urlAnalysis = new urlAnalysis();
+    }
+
+    // Function to read the file and store URLs in an array
+    async parseURLsToArray(filePath: string): Promise<string[]> {
+        const fileStream = fs.createReadStream(filePath);
+        const rl = readline.createInterface({
+        input: fileStream,
+        crlfDelay: Infinity,
+        });
+    
+        const urlArray: string[] = []; // Array to store URLs
+    
+        // Process each line (URL) in the file
+        for await (const line of rl) {
+        urlArray.push(line); // Add the URL to the array
+        }
+    
+        return urlArray;
     }
 
     async runAnalysis(urls: string[]): Promise<repoData[]> {
@@ -92,15 +112,7 @@ export class runAnalysis {
     }
 }
 
-dotenv.config({ path: '../keys.env' });
-
-const exFileLog = [
-    //"https://github.com/nullivex/nodist",
-    //"https://www.npmjs.com/package/express",
-    "https://github.com/lodash/lodash",
-    //"https://www.npmjs.com/package/browserify",
-];
-
+dotenv.config({ path: '../.env' });
 
 const token = process.env.GITHUB_TOKEN;
 if (!token) {
@@ -108,5 +120,14 @@ if (!token) {
     process.exit(1);
 }
 
+//console.log(token);
+
 const runAnalysisClass = new runAnalysis(token);
-runAnalysisClass.runAnalysis(exFileLog);
+const fileName = process.argv[2]
+
+runAnalysisClass.parseURLsToArray(fileName)
+  .then(urlArray => {
+    //console.log(urlArray);
+    runAnalysisClass.runAnalysis(urlArray);
+  })
+  .catch(console.error);
