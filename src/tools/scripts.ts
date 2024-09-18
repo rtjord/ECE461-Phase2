@@ -1,9 +1,10 @@
-import dotenv from 'dotenv';
-import { urlAnalysis } from './urlOps';
-import { repoData } from './utils/interfaces';
-import { gitAnalysis, npmAnalysis } from './api';
 import * as fs from 'fs';
 import * as readline from 'readline';
+import dotenv from 'dotenv';
+import { urlAnalysis } from './urlOps';
+import { repoData } from '../utils/interfaces';
+import { gitAnalysis, npmAnalysis } from './api';
+import { logger } from './logging';
 
 export class runAnalysis {
     private npmAnalysis: npmAnalysis;

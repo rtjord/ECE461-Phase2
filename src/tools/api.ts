@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as git from 'isomorphic-git';
 import * as http from 'isomorphic-git/http/node';
 import axios, { AxiosInstance } from 'axios';
-import { gitData, npmData } from './utils/interfaces';
+import { gitData, npmData } from '../utils/interfaces';
 
 export class npmAnalysis {
     async cloneRepo(url: string, dir: string): Promise<void> {
