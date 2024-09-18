@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { urlAnalysis } from './urlOps';
-import { repoData, gitData, npmData } from './utils/interfaces';
+import { repoData } from './utils/interfaces';
 import { gitAnalysis, npmAnalysis } from './api';
 
 export class runAnalysis {
@@ -29,7 +29,7 @@ export class runAnalysis {
         // call gitAnalysis and check if the token is valid
             // CHECK HERE using this.gitAnalysis.blahblah()
         
-        const repoDataPromises = urls.map(url => this.evaluateMods(url));
+        const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index));
         // Use Promise.all to wait for all promises to resolve in parallel
         const repoDataArr = await Promise.all(repoDataPromises);
         for (const repo of repoDataArr) {
@@ -38,7 +38,7 @@ export class runAnalysis {
         return repoDataArr;
     }
 
-    async evaluateMods(url: string): Promise<repoData> {
+    async evaluateMods(url: string, index: number): Promise<repoData> {
         const [type, cleanedUrl] = await this.urlAnalysis.evalUrl(url);
         console.log('Type:', type, 'Cleaned URL:', cleanedUrl);
         let repoData: repoData = {
@@ -67,13 +67,17 @@ export class runAnalysis {
             console.error('Invalid URL:', url);
             return repoData;
         }
-        //const gitData = await this.gitAnalysis.runTasks(cleanedUrl, token);
-        //const npmData = await this.npmAnalysis.runTasks(cleanedUrl);
-        let dest = 0;
+        /*
+        const npmDataPromise = this.npmAnalysis.runTasks(cleanedUrl, index);
+        const gitDataPromise = this.gitAnalysis.runTasks(cleanedUrl);
+        
+        const [npmData, gitData] = await Promise.all([npmDataPromise, gitDataPromise]);
+        */
         const [npmData, gitData] = await Promise.all([
-            await this.npmAnalysis.runTasks(cleanedUrl, dest++),
+            await this.npmAnalysis.runTasks(cleanedUrl, index),
             await this.gitAnalysis.runTasks(cleanedUrl)
         ]);
+
 
         repoData = {
             repoName: gitData.repoName,
@@ -105,7 +109,7 @@ dotenv.config({ path: '../keys.env' });
 
 const exFileLog = [
     "https://github.com/nullivex/nodist",
-    //"https://www.npmjs.com/package/express",
+    "https://www.npmjs.com/package/express",
     //"https://github.com/lodash/lodash",
     //"https://www.npmjs.com/package/browserify",
 ];

@@ -5,7 +5,7 @@ import axios, { AxiosInstance } from 'axios';
 import { gitData, npmData } from './utils/interfaces';
 
 export class npmAnalysis {
-
+/*
     async cloneRepo(url: string, dir: string): Promise<void> {
         try {
             // Check if the directory already exists
@@ -25,6 +25,37 @@ export class npmAnalysis {
                 });
                 console.log('Repository cloned');
             }
+        } catch (err) {
+            console.error('Error cloning repository:', err);
+        }
+    }
+*/
+    async cloneRepo(url: string, dir: string): Promise<void> {
+        try {
+            // Check if the directory already exists
+            try {
+                await fs.access(dir);
+                console.log(`Repository already exists in directory: ${dir}`);
+
+                // If the repository exists, delete it
+                console.log('Deleting existing repository...');
+                await fs.rm(dir, { recursive: true, force: true });
+                console.log('Repository deleted.');
+            } catch (err) {
+                // Directory does not exist, no need to delete
+                console.log('Directory does not exist, proceeding to clone...');
+            }
+
+            // Proceed to clone the repository
+            console.log('Cloning repository...');
+            await git.clone({
+                fs,
+                http,
+                dir,
+                url,
+                singleBranch: true,
+            });
+            console.log('Repository cloned.');
         } catch (err) {
             console.error('Error cloning repository:', err);
         }
@@ -66,7 +97,7 @@ export class npmAnalysis {
         return;
     }
 
-    async findTimeSinceLastCommit(dir: string, npmData: npmData): Promise<void> {
+    async lastCommitDate(dir: string, npmData: npmData): Promise<void> {
         console.log('Finding time since last commit...');
         try {
             const commits = await git.log({ fs, dir, depth: 1 });
@@ -114,7 +145,7 @@ export class npmAnalysis {
         };
 
         await this.cloneRepo(url, repoDir);
-        await this.findTimeSinceLastCommit(repoDir, npmData);
+        await this.lastCommitDate(repoDir, npmData);
         await this.getReadmeContent(repoDir, npmData);
         await this.deleteRepo(repoDir);
     
