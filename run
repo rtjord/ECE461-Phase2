@@ -4,12 +4,32 @@
 if [ "$1" = "install" ]; then
     echo "Starting install..."
     npm install
+    npm install dotenv
+    tsc
     #add any other dependencies needed here
     exit 0
-elif [[ "$1" =~ ^https?:// ]]; then #check if the first argument is a URL or test
-    node ./src/index.ts "$1" # Execute index.ts
-else
-    #if the first argument is not install or a URL, throw error
-    echo "Command not valid"
-    exit 1
-fi  # end if
+fi
+
+if [ -f "$1" ]; then #check if the file exists
+    export $(grep -v '^#' .env | xargs)
+    if [ -z "$GITHUB_TOKEN" ]; then #check if the CLOUDINARY_URL is not defined
+        echo "GITHUB_TOKEN is not set"
+        exit 1
+    fi
+    if [ -z "$LOG_LEVEL" ]; then #check if the LOG_LEVEL is not defined
+        echo "LOG_LEVEL is not set"
+        exit 1
+    fi
+    node ./src/scripts.js "$1" # Execute scripts.ts
+    exit 0
+fi 
+
+if [ "$1" = "test" ]; then #check if the first argument is test
+    #call test suite here
+    echo "test"
+    exit 0
+fi
+
+#if the first argument is not install, a vaild file, or test, throw error
+echo "Command not valid"
+exit 1
