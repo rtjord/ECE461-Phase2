@@ -10,10 +10,6 @@ export class runAnalysis {
     private token: string;
 
     constructor(token: string) {
-        if (!token) {
-            console.error('No token provided');
-            process.exit(1);
-        }
         this.token = token;
         this.npmAnalysis = new npmAnalysis();
         this.gitAnalysis = new gitAnalysis(token);
@@ -21,16 +17,13 @@ export class runAnalysis {
     }
 
     async runAnalysis(urls: string[]): Promise<repoData[]> {
-        if (!this.token) {
-            //log error
-            console.error('No token provided');
+        if (!this.gitAnalysis.isTokenValid()) {
+            console.log(this.token);
+            console.error('No valid token provided');
             process.exit(1);
         }
-        // call gitAnalysis and check if the token is valid
-            // CHECK HERE using this.gitAnalysis.blahblah()
         
         const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index));
-        // Use Promise.all to wait for all promises to resolve in parallel
         const repoDataArr = await Promise.all(repoDataPromises);
         for (const repo of repoDataArr) {
             console.log(repo);
@@ -63,16 +56,10 @@ export class runAnalysis {
             }
         };
         if (type === -1 || cleanedUrl === '') {
-            //log error
             console.error('Invalid URL:', url);
             return repoData;
         }
-        /*
-        const npmDataPromise = this.npmAnalysis.runTasks(cleanedUrl, index);
-        const gitDataPromise = this.gitAnalysis.runTasks(cleanedUrl);
-        
-        const [npmData, gitData] = await Promise.all([npmDataPromise, gitDataPromise]);
-        */
+
         const [npmData, gitData] = await Promise.all([
             await this.npmAnalysis.runTasks(cleanedUrl, index),
             await this.gitAnalysis.runTasks(cleanedUrl)
@@ -108,9 +95,9 @@ export class runAnalysis {
 dotenv.config({ path: '../keys.env' });
 
 const exFileLog = [
-    "https://github.com/nullivex/nodist",
-    "https://www.npmjs.com/package/express",
-    //"https://github.com/lodash/lodash",
+    //"https://github.com/nullivex/nodist",
+    //"https://www.npmjs.com/package/express",
+    "https://github.com/lodash/lodash",
     //"https://www.npmjs.com/package/browserify",
 ];
 

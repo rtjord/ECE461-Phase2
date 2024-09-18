@@ -5,31 +5,6 @@ import axios, { AxiosInstance } from 'axios';
 import { gitData, npmData } from './utils/interfaces';
 
 export class npmAnalysis {
-/*
-    async cloneRepo(url: string, dir: string): Promise<void> {
-        try {
-            // Check if the directory already exists
-            try {
-                await fs.access(dir);
-                console.log(`Repository already exists in directory: ${dir}`);
-                return;
-            } catch (err) {
-                // Directory does not exist, proceed with cloning
-                console.log('Cloning repository...');
-                await git.clone({
-                    fs,
-                    http,
-                    dir,
-                    url,
-                    singleBranch: true,
-                });
-                console.log('Repository cloned');
-            }
-        } catch (err) {
-            console.error('Error cloning repository:', err);
-        }
-    }
-*/
     async cloneRepo(url: string, dir: string): Promise<void> {
         try {
             // Check if the directory already exists
@@ -61,41 +36,48 @@ export class npmAnalysis {
         }
     }
 
-    /* BUGGY, SOMETIMES DOESN'T FIND README IF THERE ISN'T A README.md FILE. ACCOUNT FOR URL.#readme? */
     async getReadmeContent(dir: string, npmData: npmData): Promise<void> {
-        const oid = await git.resolveRef({ fs, dir, ref: 'HEAD' });
-        const { tree } = await git.readTree({ fs, dir, oid });
-        const readmeEntry = tree.find(entry => entry.path.toLowerCase() === 'readme.md');
-
-        if (!readmeEntry) {
-          console.log('README.md not found in the repository.');
-          return;
-        }
-        npmData.documentation.hasReadme = true;
-      
-        const readmeBlob = await git.readBlob({ fs, dir, oid: readmeEntry.oid });
-        const readmeContent = new TextDecoder().decode(readmeBlob.blob);
-/*
-        const headerRegex = (header: string) => new RegExp(`^# ${header}`, 'i'); // Main header (H1)
-        const subHeaderRegex = (header: string) => new RegExp(`^## ${header}`, 'i'); // Subheader (H2)
+        try {
+            const oid = await git.resolveRef({ fs, dir, ref: 'HEAD' });
+            const { tree } = await git.readTree({ fs, dir, oid });
     
-        // Check if the content includes the headers
-        npmData.documentation.numLines = readmeContent.split('\n').length;
-        npmData.documentation.hasToc = headerRegex('Table of Contents').test(readmeContent);
-        npmData.documentation.hasInstallation = subHeaderRegex('Installation').test(readmeContent);
-        npmData.documentation.hasUsage = subHeaderRegex('Usage').test(readmeContent);
-        npmData.documentation.hasExamples = subHeaderRegex('Examples').test(readmeContent);
-        npmData.documentation.hasDocumentation = subHeaderRegex('Documentation').test(readmeContent);
-*/
-        npmData.documentation.numLines = readmeContent.split('\n').length;
-        npmData.documentation.hasToc = /[Tt]able of [Cc]ontents/i.test(readmeContent);
-        npmData.documentation.hasInstallation = /[Ii]nstall/i.test(readmeContent);
-        npmData.documentation.hasUsage = /[Uu]sage/i.test(readmeContent);
-        npmData.documentation.hasExamples = /[Ee]xamples/i.test(readmeContent);
-        npmData.documentation.hasDocumentation = /[Dd]ocumentation/i.test(readmeContent) || /[Dd]ocs/i.test(readmeContent);
-        
+            const readmeEntry = tree.find(entry => 
+                ['readme.md', 'readme', 'readme.txt', 'readme.rst'].includes(entry.path.toLowerCase())
+            );
+    
+            let readmeContent: string | null = null;
+            if (readmeEntry) {
+                // Found a README file in the repository
+                const readmeBlob = await git.readBlob({ fs, dir, oid: readmeEntry.oid });
+                readmeContent = new TextDecoder().decode(readmeBlob.blob);
+            } else {
+                // No README file found, try to fetch README from the package URL (if applicable)
+                console.log('No README file found in the repository tree. Trying to fetch via package URL...');
+                const readmeUrl = `${npmData.repoUrl}#readme`; // Construct URL to fetch README
+                const response = await fetch(readmeUrl);
+    
+                if (response.ok) {
+                    readmeContent = await response.text();
+                } else {
+                    console.log('Could not retrieve README from package URL:', readmeUrl);
+                }
+            }
+    
+            if (readmeContent) {
+                npmData.documentation.hasReadme = true;
+                npmData.documentation.numLines = readmeContent.split('\n').length;
+                npmData.documentation.hasToc = /[Tt]able of [Cc]ontents/i.test(readmeContent);
+                npmData.documentation.hasInstallation = /[Ii]nstall/i.test(readmeContent);
+                npmData.documentation.hasUsage = /[Uu]sage/i.test(readmeContent);
+                npmData.documentation.hasExamples = /[Ee]xamples/i.test(readmeContent);
+                npmData.documentation.hasDocumentation = /[Dd]ocumentation/i.test(readmeContent) || /[Dd]ocs/i.test(readmeContent);
+            }
+    
+        } catch (err) {
+            console.error('Error retrieving the README content:', err);
+        }
         return;
-    }
+    } 
 
     async lastCommitDate(dir: string, npmData: npmData): Promise<void> {
         console.log('Finding time since last commit...');
@@ -171,6 +153,14 @@ export class gitAnalysis {
             }
         });
     }
+
+    async isTokenValid(): Promise<boolean> {
+        let isValid = false;
+        const response = await this.axiosInstance.get('https://github.com/lodash/lodash');
+        response.status === 200 ? isValid = true : isValid = false;
+        return isValid;
+    }
+
     
     //make sure of connection
     async checkConnection(url: string): Promise<boolean> {
