@@ -50,10 +50,6 @@ const fs = __importStar(require("fs"));
 const readline = __importStar(require("readline"));
 class runAnalysis {
     constructor(token) {
-        if (!token) {
-            console.error('No token provided');
-            process.exit(1);
-        }
         this.token = token;
         this.npmAnalysis = new api_1.npmAnalysis();
         this.gitAnalysis = new api_1.gitAnalysis(token);
@@ -90,15 +86,12 @@ class runAnalysis {
     }
     runAnalysis(urls) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.token) {
-                //log error
-                console.error('No token provided');
+            if (!this.gitAnalysis.isTokenValid()) {
+                console.log(this.token);
+                console.error('No valid token provided');
                 process.exit(1);
             }
-            // call gitAnalysis and check if the token is valid
-            // CHECK HERE using this.gitAnalysis.blahblah()
             const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index));
-            // Use Promise.all to wait for all promises to resolve in parallel
             const repoDataArr = yield Promise.all(repoDataPromises);
             for (const repo of repoDataArr) {
                 console.log(repo);
@@ -132,16 +125,9 @@ class runAnalysis {
                 }
             };
             if (type === -1 || cleanedUrl === '') {
-                //log error
                 console.error('Invalid URL:', url);
                 return repoData;
             }
-            /*
-            const npmDataPromise = this.npmAnalysis.runTasks(cleanedUrl, index);
-            const gitDataPromise = this.gitAnalysis.runTasks(cleanedUrl);
-            
-            const [npmData, gitData] = await Promise.all([npmDataPromise, gitDataPromise]);
-            */
             const [npmData, gitData] = yield Promise.all([
                 yield this.npmAnalysis.runTasks(cleanedUrl, index),
                 yield this.gitAnalysis.runTasks(cleanedUrl)
