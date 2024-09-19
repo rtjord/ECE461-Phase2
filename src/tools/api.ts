@@ -279,7 +279,7 @@ export class gitAnalysis {
 
     //retrieve data for liscense
     async fetchLicense(gitData: gitData): Promise<void> {
-        console.log('Fetching license...');
+        this.logger.logDebug('Fetching license...');
         const approved_license = ['MIT License', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
         try {
             // Fetch license information
@@ -296,7 +296,7 @@ export class gitAnalysis {
                 }
             }
             gitData.licenses = license;
-            console.log('License name:', gitData.licenses);
+            this.logger.logDebug('License fetched successfully');
             return;
         } catch (error) {
             this.logger.logDebug(`Error fetching license for ${gitData.repoUrl}`, error);
