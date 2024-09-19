@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#current_dir="$(cd "$(dirname "$0")" && pwd)"
+
 #if the first argument is install then run npm install
 if [ "$1" = "install" ]; then
     echo "Starting install..."
@@ -19,7 +21,8 @@ if [ -f "$1" ]; then #check if the file exists
         echo "LOG_LEVEL is not set"
         exit 1
     fi
-    node ./srcJS/scripts.js "$1" # Execute scripts.ts
+    #cd "$current_dir/srcJS"
+    node ./srcJS/index.js "$1" # Execute index.ts
     exit 0
 fi 
 

@@ -2,27 +2,31 @@ import * as fs from 'fs/promises';
 import * as git from 'isomorphic-git';
 import * as http from 'isomorphic-git/http/node';
 import axios, { AxiosInstance } from 'axios';
-import { gitData, npmData } from './utils/interfaces';
+import { gitData, npmData } from '../utils/interfaces';
+import { logger } from './logging';
+import { envVars } from '../utils/interfaces';
 
 export class npmAnalysis {
-    async cloneRepo(url: string, dir: string): Promise<void> {
+    private logger: logger;
+
+    constructor(envVars: envVars) {
+        this.logger = new logger(envVars);
+    }
+
+    private async cloneRepo(url: string, dir: string): Promise<void> {
         try {
             // Check if the directory already exists
             try {
                 await fs.access(dir);
-                console.log(`Repository already exists in directory: ${dir}`);
-
-                // If the repository exists, delete it
-                console.log('Deleting existing repository...');
+                this.logger.logInfo(`Repository already exists in directory: ${dir}`);
                 await fs.rm(dir, { recursive: true, force: true });
-                console.log('Repository deleted.');
             } catch (err) {
                 // Directory does not exist, no need to delete
-                console.log('Directory does not exist, proceeding to clone...');
+                this.logger.logDebug('Directory does not exist, proceeding to clone...');
             }
 
             // Proceed to clone the repository
-            console.log('Cloning repository...');
+            this.logger.logInfo('Cloning repository...');
             await git.clone({
                 fs,
                 http,
@@ -30,13 +34,13 @@ export class npmAnalysis {
                 url,
                 singleBranch: true,
             });
-            console.log('Repository cloned.');
+            this.logger.logInfo('Repository cloned.');
         } catch (err) {
-            console.error('Error cloning repository:', err);
+            this.logger.logDebug(`Error cloning repository for ${url} in ${dir}`);
         }
     }
 
-    async getReadmeContent(dir: string, npmData: npmData): Promise<void> {
+    private async getReadmeContent(dir: string, npmData: npmData): Promise<void> {
         try {
             const oid = await git.resolveRef({ fs, dir, ref: 'HEAD' });
             const { tree } = await git.readTree({ fs, dir, oid });
@@ -52,14 +56,14 @@ export class npmAnalysis {
                 readmeContent = new TextDecoder().decode(readmeBlob.blob);
             } else {
                 // No README file found, try to fetch README from the package URL (if applicable)
-                console.log('No README file found in the repository tree. Trying to fetch via package URL...');
+                this.logger.logInfo('No README file found in the repository tree. Trying to fetch via package URL...');
                 const readmeUrl = `${npmData.repoUrl}#readme`; // Construct URL to fetch README
                 const response = await fetch(readmeUrl);
     
                 if (response.ok) {
                     readmeContent = await response.text();
                 } else {
-                    console.log('Could not retrieve README from package URL:', readmeUrl);
+                    this.logger.logDebug(`Could not retrieve README from package URL ${readmeUrl}`);
                 }
             }
     
@@ -74,13 +78,13 @@ export class npmAnalysis {
             }
     
         } catch (err) {
-            console.error('Error retrieving the README content:', err);
+            this.logger.logDebug(`Error retrieving the README content for ${npmData.repoUrl}`);
         }
         return;
     } 
 
-    async lastCommitDate(dir: string, npmData: npmData): Promise<void> {
-        console.log('Finding time since last commit...');
+    private async lastCommitDate(dir: string, npmData: npmData): Promise<void> {
+        this.logger.logDebug('Finding time since last commit...');
         try {
             const commits = await git.log({ fs, dir, depth: 1 });
             const lastCommit = commits[0]; 
@@ -90,27 +94,28 @@ export class npmAnalysis {
               npmData.lastCommitDate = lastCommitDate.toDateString();;
               return;
             } else {
-              console.log('No commits found in the repository.');
+                this.logger.logDebug('No commits found in the repository.');
               return;
             }
           } catch (err) {
-            console.error('Error retrieving the last commit:', err);
+            this.logger.logDebug(`Error retrieving the last commit in ${dir} for ${npmData.repoUrl}`);
             return;
           }
     }
     
-    async deleteRepo(dir: string): Promise<void> {
-        console.log('Deleting repository...');
+    private async deleteRepo(dir: string): Promise<void> {
+        this.logger.logDebug('Deleting repository...');
         try {
             await fs.rm(dir, { recursive: true, force: true });
-            console.log('Repository deleted');
+            this.logger.logDebug('Repository deleted');
         } catch (err) {
-            console.error('Failed to delete repository:', err);
+            this.logger.logDebug(`Failed to delete repository in ${dir}:`);
         }
     }
     
     // Main function to run the tasks in order
     async runTasks(url: string, dest: number): Promise<npmData> {
+        this.logger.logDebug('Running npm tasks...');
         const repoDir = './repoDir'+dest.toString();
         let npmData: npmData = {
             repoUrl: url,
@@ -131,25 +136,27 @@ export class npmAnalysis {
         await this.getReadmeContent(repoDir, npmData);
         await this.deleteRepo(repoDir);
     
-        console.log('All npm tasks completed in order');
+        this.logger.logInfo('All npm tasks completed in order');
         return npmData;
     }
 }
 
 export class gitAnalysis {
     private axiosInstance: AxiosInstance;
+    private logger: logger;
     private token: string;
     
-    //axios instance using tokens, loglevel, logfile from keys.n
-    constructor(token: string) {
-        this.token = token;
+    //axios instance using tokens, loglevel, logfile from .env
+    constructor(envVars: envVars) {
+        this.logger = new logger(envVars);
+        this.token = envVars.token;
         this.axiosInstance = axios.create({
             baseURL: 'https://api.github.com',  // Set a base URL for all requests
             timeout: 5000,                      // Set a request timeout (in ms)
             headers: {
                 'Content-Type': 'application/json',  // Default content type
                 'Accept': 'application/vnd.github.v3+json',  // Custom accept header for GitHub API version
-                'Authorization': 'Bearer '+token  // Authorization header with token
+                'Authorization': 'Bearer '+this.token  // Authorization header with token
             }
         });
     }
@@ -161,60 +168,54 @@ export class gitAnalysis {
         return isValid;
     }
 
-    
-    //make sure of connection
     async checkConnection(url: string): Promise<boolean> {
         try {
             // Make a simple request to GitHub to check the rate limit endpoint
             const response = await this.axiosInstance.get(url);
 
             // If the request succeeds, print the rate limit and return true
-            console.log('Connection successful:', response.status);
+            this.logger.logInfo('Connection successful: status 200');
             return true;
         } catch (error) {
             // If an error occurs, log it and return false
-            console.error('Connection failed:', error);
+            this.logger.logDebug('Connection failed', error);
             return false;
         }
     }
 
-    //parse owner from url
     async getOwnerAndRepo(gitData: gitData): Promise<void> {
+        this.logger.logDebug('Fetching owner and repo name...');
         if (!gitData.repoUrl) {
-            console.error('Invalid URL');
+            this.logger.logInfo('Invalid URL');
             return;
         }
 
         const urlParts = gitData.repoUrl.split('/');
         if (urlParts.length >= 5) {
             gitData.repoOwner = urlParts[3]; // Extract owner name
-            console.log(`Owner parsed from URL: ${gitData.repoOwner}`);
             gitData.repoName = urlParts[4]; // Extract repository name
-            console.log(`Repository parsed from URL: ${gitData.repoName}`);
             return;
         } else {
-            console.error('Invalid GitHub repository URL format.');
+            this.logger.logDebug(`Invalid GitHub repository URL format: ${gitData.repoUrl}`);
             return;
         }
     }
 
-    //retrieve data by calling correct endpoints
-    //retrieve data for open issues
     async fetchOpenIssues(gitData: gitData): Promise<void> {
-        console.log('Fetching open issues...');
+        this.logger.logDebug('Fetching open issues...');
         try {
             const issues = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}`); //get request and await response
             gitData.numberOfOpenIssues = issues.data.open_issues_count; //grab the data
-            console.log('Open Issues fetched successfully:', gitData.numberOfOpenIssues);
+            this.logger.logDebug('Open Issues fetched successfully');
             return;
         } catch (error) {
-            console.error(error);
+            this.logger.logDebug(`Error fetching open issues for ${gitData.repoUrl}`, error);
         }
     }
 
     //retrieve data for closed issues
     async fetchClosedIssues(gitData: gitData): Promise<void> {
-        console.log('Fetching closed issues...');
+        this.logger.logDebug('Fetching closed issues...');
         try {
             let page = 1;
             let totalClosedIssues = 0;
@@ -235,17 +236,17 @@ export class gitAnalysis {
                 page++;
             } while ((gitData.numberOfOpenIssues * 2) >= totalClosedIssues && issues.length > 0); // Continue until open issues is 1/2 of the closed issues or last closed issue
 
-            console.log('Closed Issues Count fetched successfully:', totalClosedIssues);
+            this.logger.logDebug('Closed Issues Count fetched successfully');
             gitData.numberOfClosedIssues = totalClosedIssues;
             return;
         } catch (error) {
-            console.error(error);
+            this.logger.logDebug(`Error fetching closed issues for ${gitData.repoUrl}`, error);
         }
     }
 
     //retrieve data for number of contributors
     async fetchContributors(gitData: gitData): Promise<void> {
-        console.log('Fetching contributors...');
+        this.logger.logDebug('Fetching contributors...');
         try {
             // Initialize variables
             let page = 1;
@@ -268,17 +269,17 @@ export class gitAnalysis {
                 page++;
             }
 
-            console.log('Contributors Count fetched successfully:', contributorsCount);
+            this.logger.logDebug('Contributors Count fetched successfully');
             gitData.numberOfContributors = contributorsCount;
             return;
         } catch (error) {
-            console.error(error);
+            this.logger.logDebug(`Error fetching number of contributors for ${gitData.repoUrl}`, error);
         }
     }
 
     //retrieve data for liscense
     async fetchLicense(gitData: gitData): Promise<void> {
-        console.log('Fetching license...');
+        this.logger.logDebug('Fetching license...');
         const approved_license = ['MIT License', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
         try {
             // Fetch license information
@@ -295,16 +296,16 @@ export class gitAnalysis {
                 }
             }
             gitData.licenses = license;
-            console.log('License name:', gitData.licenses);
+            this.logger.logDebug('License fetched successfully');
             return;
         } catch (error) {
-            console.error(error);
+            this.logger.logDebug(`Error fetching license for ${gitData.repoUrl}`, error);
         }
     }
 
     //retrieve data for number of commits
     async fetchCommits(gitData: gitData): Promise<void> {
-        console.log('Fetching commits...');
+        this.logger.logDebug('Fetching commits...');
         try {
             // Initialize count
             let totalCommits = 0;
@@ -327,16 +328,16 @@ export class gitAnalysis {
                 page++;
             }
             gitData.numberOfCommits = totalCommits;
-            console.log('Total number of commits:', gitData.numberOfCommits);
+            this.logger.logDebug('Commits Count fetched successfully');
             return;
         } catch (error) {
-            console.error(error);
+            this.logger.logDebug(`Error fetching number of commits for ${gitData.repoUrl}`, error);
         }
     }
 
     //retrieve total number of lines
     async fetchLines(gitData: gitData): Promise<void> {
-        console.log('Fetching lines of code...');
+        this.logger.logDebug('Fetching lines of code...');
 
         // Helper for determining if it's a file or directory
         const processDirorFile = async (file: any): Promise<number> => {
@@ -369,7 +370,6 @@ export class gitAnalysis {
 
             return result; // If not a file or directory
         }
-
         try {
             let totalLines = 0;
 
@@ -387,46 +387,40 @@ export class gitAnalysis {
             // Sum up all the lines of code
             totalLines = fileLines.reduce((sum, value) => sum + value, 0);
             gitData.numberOfLines = totalLines;
-
-            console.log('Total lines of code:', gitData.numberOfLines);
+            this.logger.logDebug('Lines of code fetched successfully');
+            return;
         } catch (error) {
-            console.error('Error fetching repository files:', error);
+            this.logger.logDebug(`Error fetching number of lines for ${gitData.repoUrl}`, error);
         }
     }
 
     async runTasks(url: string): Promise<gitData> {
+        this.logger.logDebug('Running git tasks...');
         let gitData: gitData = {
             repoName: '',
             repoUrl: url,
             repoOwner: '',
-            numberOfContributors: 0,
-            numberOfOpenIssues: 0,
-            numberOfClosedIssues: 0,
+            numberOfContributors: -1,
+            numberOfOpenIssues: -1,
+            numberOfClosedIssues: -1,
             licenses: [],
-            numberOfCommits: 0,
-            numberOfLines: 0
+            numberOfCommits: -1,
+            numberOfLines: -1
         };
-        // Create an axios instance
-            /*
-            Might be worth adding a funciton that handles all get request to
-            the Github API that takes in the parameter of the endpoint and 
-            returns whatever is needed.
-            */
-        // Run each function sequentially
+
         if (await this.checkConnection(url)) {
             await this.getOwnerAndRepo(gitData);
             await this.fetchContributors(gitData);
             await this.fetchOpenIssues(gitData);
             await this.fetchClosedIssues(gitData); //CURRENTLY NOT WORKING FOR ONE OF THE URLS or slow
-            //await this.fetchLastCommit(owner,repo);
             await this.fetchLicense(gitData); //take another way
             await this.fetchCommits(gitData); //slow
             await this.fetchLines(gitData); //error for some files (currently not printing error)
     
-            console.log('All git tasks completed in order');
+            this.logger.logInfo('All git tasks completed in order');
             return gitData;
         }
-        console.log("No git tasks completed. Invalid URL.")
+        this.logger.logDebug(`No git tasks completed. Invalid URL: ${url}`);
         return gitData;
     }
 }
