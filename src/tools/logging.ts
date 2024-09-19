@@ -56,7 +56,7 @@ export class logger {
 
     private logMessage(level: LogLevel, message: string, error?: any) {
         const isoString = new Date().toISOString();
-        const dateTime = isoString.slice(0, 19).replace('T', ' '); // YYYY-MM-DD HH:MM:SS
+        const dateTime = isoString.slice(0, 19).replace('T', ' | '); // YYYY-MM-DD HH:MM:SS
         const logEntry = `${dateTime} - ${LogLevel[level]} - ${message}`;
         if (error) {
             logEntry.concat(` - ${error}`);
