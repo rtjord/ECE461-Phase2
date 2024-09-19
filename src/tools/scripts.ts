@@ -1,9 +1,7 @@
-import * as fs from 'fs';
-import * as readline from 'readline';
-import dotenv from 'dotenv';
 import { urlAnalysis } from './urlOps';
 import { repoData } from '../utils/interfaces';
 import { gitAnalysis, npmAnalysis } from './api';
+import { envVars } from './getEnvVars';
 import { logger } from './logging';
 
 export class runAnalysis {
@@ -11,50 +9,29 @@ export class runAnalysis {
     private gitAnalysis: gitAnalysis;
     private urlAnalysis: urlAnalysis;
     private token: string;
+    private logger: logger;
 
-    constructor(token: string) {
-        this.token = token;
-        this.npmAnalysis = new npmAnalysis();
-        this.gitAnalysis = new gitAnalysis(token);
+    constructor(envVars: envVars) {
+        this.token = envVars.token;
+        this.logger = new logger(envVars);
+        this.npmAnalysis = new npmAnalysis(envVars);
+        this.gitAnalysis = new gitAnalysis(envVars);
         this.urlAnalysis = new urlAnalysis();
-    }
-
-    // Function to read the file and store URLs in an array
-    async parseURLsToArray(filePath: string): Promise<string[]> {
-        const fileStream = fs.createReadStream(filePath);
-        const rl = readline.createInterface({
-        input: fileStream,
-        crlfDelay: Infinity,
-        });
-    
-        const urlArray: string[] = []; // Array to store URLs
-    
-        // Process each line (URL) in the file
-        for await (const line of rl) {
-        urlArray.push(line); // Add the URL to the array
-        }
-    
-        return urlArray;
     }
 
     async runAnalysis(urls: string[]): Promise<repoData[]> {
         if (!this.gitAnalysis.isTokenValid()) {
-            console.log(this.token);
-            console.error('No valid token provided');
+            this.logger.logInfo('No valid token provided');
             process.exit(1);
         }
         
         const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index));
         const repoDataArr = await Promise.all(repoDataPromises);
-        for (const repo of repoDataArr) {
-            console.log(repo);
-        }
         return repoDataArr;
     }
 
     async evaluateMods(url: string, index: number): Promise<repoData> {
         const [type, cleanedUrl] = await this.urlAnalysis.evalUrl(url);
-        console.log('Type:', type, 'Cleaned URL:', cleanedUrl);
         let repoData: repoData = {
             repoName: '',
             repoUrl: url,
@@ -77,7 +54,7 @@ export class runAnalysis {
             }
         };
         if (type === -1 || cleanedUrl === '') {
-            console.error('Invalid URL:', url);
+            this.logger.logDebug(`Invalid URL - ${url}`);
             return repoData;
         }
 
@@ -112,23 +89,3 @@ export class runAnalysis {
         return repoData;
     }
 }
-
-dotenv.config({ path: '../.env' });
-
-const token = process.env.GITHUB_TOKEN;
-if (!token) {
-    console.error('GitHub token is not defined in environment variables');
-    process.exit(1);
-}
-
-//console.log(token);
-
-const runAnalysisClass = new runAnalysis(token);
-const fileName = process.argv[2]
-
-runAnalysisClass.parseURLsToArray(fileName)
-  .then(urlArray => {
-    //console.log(urlArray);
-    runAnalysisClass.runAnalysis(urlArray);
-  })
-  .catch(console.error);

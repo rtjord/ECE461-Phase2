@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 
 export class envVars {
     public logLevel: number;
-    public logPath: string;
+    public logFilePath: string;
     public token: string;
 
     constructor() {
@@ -14,11 +14,11 @@ export class envVars {
         }
         this.token = token;
         this.logLevel = Number(process.env.LOG_LEVEL);
-        const logPath = process.env.LOG_PATH;
-        if (logPath === undefined) {
+        const logFilePath = process.env.LOG_FILE;
+        if (logFilePath === undefined) {
             console.error('Log path is not defined in environment variables');
             process.exit(1);
         }
-        this.logPath = logPath;
+        this.logFilePath = logFilePath;
     }
 }

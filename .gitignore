@@ -6,3 +6,7 @@ keys.env
 ## Package Files ##
 package-lock.json
 node_modules/
+
+## tsc files ##
+srcJS/
+*.js

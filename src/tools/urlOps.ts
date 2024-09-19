@@ -1,4 +1,6 @@
+import * as fs from 'fs';
 import * as https from 'https';
+import * as readline from 'readline';
 
 export class urlAnalysis {
     async evalUrl(url: string): Promise<[number, string]> {
@@ -70,4 +72,21 @@ export class urlAnalysis {
             });
         });
     }
+}
+
+export async function parseURLsToArray(filePath: string): Promise<string[]> {
+    const fileStream = fs.createReadStream(filePath);
+    const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity,
+    });
+
+    const urlArray: string[] = []; // Array to store URLs
+
+    // Process each line (URL) in the file
+    for await (const line of rl) {
+    urlArray.push(line); // Add the URL to the array
+    }
+
+    return urlArray;
 }

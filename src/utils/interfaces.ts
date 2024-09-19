@@ -33,6 +33,7 @@ export interface npmData {
 }
 
 export interface envVars {
+    token: string;
     logLevel: number;
-    logPath: string;
+    logFilePath: string;
 }
