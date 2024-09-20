@@ -1,7 +1,7 @@
 //HOW DO I WRITE THIS IMPORT STATEMENT CORRECTLY???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 import { repoData } from '../utils/interfaces'; // Assuming the path is correct
-import { metricData2 } from '../utils/interfaces';
-import { metricData1 } from '../utils/interfaces';
+import { metricData } from '../utils/interfaces';
+import { repoLatencyData } from '../utils/types';
 
 //***********************************************************************NOTES************************************************************************************ */
 //1. Figure out if its imported correctly
@@ -11,46 +11,7 @@ import { metricData1 } from '../utils/interfaces';
 //5. Push updated script to Github
 //**************************************************************************************************************************************************************** */
 
-export class metricCalcClass{
-    private correctness: number;
-    private busFactor: number;
-    private rampup: number;
-    private responsiveness: number;
-    private licenseExistence: number;
-    private netScore: number;
-
-    constructor()
-    {
-        this.correctness = -1;
-        this.busFactor = -1;
-        this.rampup = -1;
-        this.responsiveness = -1;
-        this.licenseExistence = -1;
-        this.netScore = -1;
-    }
-    //Gets the data from the interface and passes it to the sub-functions doing the calculations
-    extractmetricData(data: repoData): metricData2[] 
-    {
-        const metricData: metricData2[] = [];
-
-        const correctness = this.calculateCorrectness(data);
-        const busFactor = this.calculateBusFactor(data);
-        const rampup = this.calculateRampup(data);
-        const responsiveness = this.calculateResponsiveness(data);
-        const licenseExistence = this.checkLicenseExistence(data);
-
-        const netScore = this.calculateNetScore(correctness, busFactor, rampup, responsiveness, licenseExistence);
-
-        // Push each metric into the array
-        metricData.push({ name: 'Correctness', value: correctness });
-        metricData.push({ name: 'Bus Factor', value: busFactor });
-        metricData.push({ name: 'Rampup', value: rampup });
-        metricData.push({ name: 'Responsiveness', value: responsiveness });
-        metricData.push({ name: 'License Existence', value: licenseExistence });
-        metricData.push({ name: 'Net Score', value: netScore });
-
-        return metricData;
-    }
+export class metricCalc{
 
     calculateCorrectness(data: repoData): number 
     {
@@ -73,7 +34,11 @@ export class metricCalcClass{
             correctness = 1 - (numberOfOpenIssues / (numberOfClosedIssues));
             return correctness;
         }
-        
+    }
+
+    getCorrectnessLatency(latency: repoLatencyData): number 
+    {
+        return parseFloat((latency.openIssues + latency.closedIssues).toFixed(3));
     }
 
     calculateBusFactor(data: repoData): number 
@@ -90,127 +55,73 @@ export class metricCalcClass{
         return busFactor;
     }
 
-    calculateRampup(data: repoData): number //NOT SURE WHAT SIZE OF README VARIABLE IS YET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?????????????????????????????????
+    calculateRampup(data: repoData): number
     {
         // Calculate rampup metric based on the data
         // Example:
         const { numberOfLines, numberOfCommits, documentation } = data;
-        let value1 = 0;
-        let value2 = 0;
-        let value3 = 0;
-        let value4 = 0;
-        
+        let doc_total = 0;
         
         //Create the weightage for the Readme
-        if(documentation.hasReadme == true) value1 = 1;
-        else value1 = 0;
-        
-        if(documentation.numLines > 300) value2 = 0.1;
-        else value2 = 0;
-
-        if(documentation.hasExamples == true) value3 = 0.1;
-        else value3 = 0;
-
-        if(documentation.hasDocumentation == true) value4 = 0.14;
-        else value4 = 0;
-
-        let doc_total = value1 *(value2 + value3 + value4);
+        if(documentation.numLines > 300) doc_total += 0.1;
+        if(documentation.hasExamples == true) doc_total += 0.1;
+        if(documentation.hasDocumentation == true) doc_total += 0.14;
+        if(documentation.hasReadme == true) doc_total *= 1;
 
         const rampup = (numberOfLines > 500 ? 0.33 : 0) + (numberOfCommits > 1000 ? 0.33 : 0) + (doc_total);
         return rampup;
     }
 
+    getRampupLatency(latency: repoLatencyData): number 
+    {
+        return parseFloat((latency.numberOfLines + latency.numberOfCommits + latency.documentation).toFixed(3));
+    }
+
     calculateResponsiveness(data: repoData): number 
     {
         // Calculate responsiveness metric based on the data
-        // Example:
-        // const responsiveness = data.responsiveness;
-        // return responsiveness;
-        const { lastCommitDate } = data;
-        const commitTime = parseFloat(lastCommitDate);
-        return (1 / commitTime);
+        const currentDate = new Date();
+        const commitDate = new Date(data.lastCommitDate);
+        const timeDifference = currentDate.getTime() - commitDate.getTime();
+        const monthsDifference = timeDifference / (1000 * 3600 * 24 * 12.0);
+
+        return parseFloat((1 / monthsDifference).toFixed(3));
     }
 
     checkLicenseExistence(data: repoData): number 
     {
         // Check if a specific license exists in the data
-        const allowedLicenses = ['MIT License', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
-        return data.licenses.some(license => allowedLicenses.includes(license)) ? 1 : 0; //MIGHT HAVE TO FIX THE LICENSE VARIABLE HERE
-        
+        const allowedLicenses = ['MIT', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
+        return data.licenses[0] == '' ? 0 : 1;
     }
 
-    calculateNetScore(correctness: number, busFactor: number, rampup: number, responsiveness: number, licenseExistence: number): number 
+    calculateNetScore(data: repoData): number 
     {
         // Calculate the net score based on the individual metrics
-        // Example:
-        // const netScore = correctness + busFactor + rampup + responsiveness;
-        const weightedScore = (0.3 * responsiveness) + (0.25 * correctness) + (0.25 * rampup) + (0.2 * busFactor);
-        return licenseExistence === 1 ? weightedScore * 1 : weightedScore * 0;
-        
-        // const extractedData = this.extractmetricData(repoData); 
-        // console.log(extractedData);
-        
+        const weightedScore = (0.3 * this.calculateResponsiveness(data)) + (0.25 * this.calculateCorrectness(data)) + (0.25 * this.calculateRampup(data)) + (0.2 * this.calculateBusFactor(data));
+        return this.checkLicenseExistence(data) === 1 ? weightedScore * 1 : weightedScore * 0;
     }
-    getValue(data: repoData): metricData1 {
-        const metricData = this.extractmetricData(data);
+
+    getNetScoreLatency(latency: repoLatencyData): number 
+    {
+        return parseFloat((latency.numberOfLines + latency.openIssues + latency.closedIssues + latency.openIssues + latency.licenses + latency.numberOfCommits + latency.numberOfLines + latency.documentation).toFixed(3));
+    }
+
+    getValue(data: repoData): metricData {
         return {
             URL: data.repoUrl,
-            NetScore: this.calculateNetScore(
-                this.calculateCorrectness(data),
-                this.calculateBusFactor(data),
-                this.calculateRampup(data),
-                this.calculateResponsiveness(data),
-                this.checkLicenseExistence(data)
-            ),
-            NetScore_Latency: 0,
+            NetScore: this.calculateNetScore(data),
+            NetScore_Latency: this.getNetScoreLatency(data.latency),
             RampUp: this.calculateRampup(data),
-            RampUp_Latency: 0,
+            RampUp_Latency: this.getRampupLatency(data.latency),
             Correctness: this.calculateCorrectness(data),
-            Correctness_Latency: 0, // Assuming latency is zero for simplicity
+            Correctness_Latency: this.getCorrectnessLatency(data.latency),
             BusFactor: this.calculateBusFactor(data),
-            BusFactor_Latency: 0,
+            BusFactor_Latency: parseFloat((data.latency.contributors).toFixed(3)),
             ResponsiveMaintainer: this.calculateResponsiveness(data),
-            ResponsiveMaintainer_Latency: 0,
+            ResponsiveMaintainer_Latency: parseFloat((data.latency.lastCommitDate).toFixed(3)),
             License: this.checkLicenseExistence(data),
-            License_Latency: 0,
-
+            License_Latency: parseFloat((data.latency.licenses).toFixed(3))
         };
     }
-
 }
-
-const fakeRepoData: repoData = {
-    repoName: 'example-repo',
-    repoUrl: 'https://github.com/example-repo', // This will be omitted from the final output
-    repoOwner: 'example-owner',
-    numberOfContributors: 400,
-    numberOfOpenIssues: 10,
-    numberOfClosedIssues: 20,
-    lastCommitDate: "10000", // Example value for commit time in milliseconds
-    licenses: ['MIT License'],
-    numberOfCommits: 1200,
-    numberOfLines: 600,
-    documentation: {
-        hasReadme: true,
-        numLines: 1000,
-        hasExamples: true,
-        hasDocumentation: true
-    },
-    latency: {
-        contributors: -1,
-        openIssues: -1,
-        closedIssues: -1,
-        lastCommitDate: -1,
-        licenses: -1,
-        numberOfCommits: -1,
-        numberOfLines: -1,
-        documentation: -1
-    }
-};
-
-const metricClass = new metricCalcClass();
-const result = metricClass.getValue(fakeRepoData);
-delete result.metricData;
-//console.log(JSON.stringify(result, null, 2)); // Print the result to the console
-const formattedOutput = JSON.stringify(result).replace(/,/g, ', '); // Add a space after each comma
-console.log(formattedOutput); // Outputs the result with spaces after commas

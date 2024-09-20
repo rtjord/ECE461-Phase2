@@ -41,7 +41,7 @@ export interface envVars {
     logFilePath: string;
 }
 
-export interface metricData1{
+export interface metricData{
     URL: string;
     Correctness: number;
     Correctness_Latency: number;
@@ -55,10 +55,4 @@ export interface metricData1{
     License_Latency: number;
     NetScore: number;
     NetScore_Latency: number;
-    metricData ?: metricData2[];
-}
-
-export interface metricData2 {
-    name: string;
-    value: number; 
 }
