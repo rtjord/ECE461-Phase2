@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { exec } from 'child_process';
 import { envVars } from './tools/getEnvVars';
 import { runAnalysis } from './tools/scripts';
 import { parseURLsToArray } from './tools/urlOps';
@@ -39,7 +40,19 @@ program
     .command('test')
     .description('Run tests')
     .action(() => {
-        console.log('Running tests');
-    });
+        exec('npx jest ./srcJS/testing/', (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error running tests: ${error.message}`);
+            return;
+          }
+    
+          if (stderr) {
+            console.error(`Test error output: ${stderr}`);
+            return;
+          }
+    
+          console.log(`Test output:\n${stdout}`);
+        });
+      });
 
 program.parse(process.argv);
