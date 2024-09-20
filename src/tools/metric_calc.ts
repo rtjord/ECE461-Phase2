@@ -12,23 +12,21 @@ import { metricData1 } from '../utils/interfaces';
 //**************************************************************************************************************************************************************** */
 
 class metricCalcClass{
-    correctness: number;
-    busFactor: number;
-    rampup: number;
-    responsiveness: number;
-    licenseExistence: number;
-    netScore: number;
-    metricData: metricData2[];
+    private correctness: number;
+    private busFactor: number;
+    private rampup: number;
+    private responsiveness: number;
+    private licenseExistence: number;
+    private netScore: number;
 
-    constructor(repoData: repoData, correctness: number, busFactor: number, rampup: number, responsiveness: number, licenseExistence: number, netScore: number, metricData: metricData2[])
+    constructor()
     {
-        this.correctness = correctness;
-        this.busFactor = busFactor;
-        this.rampup = rampup;
-        this.responsiveness = responsiveness;
-        this.licenseExistence = licenseExistence;
-        this.netScore = netScore;
-        this.metricData = metricData;
+        this.correctness = -1;
+        this.busFactor = -1;
+        this.rampup = -1;
+        this.responsiveness = -1;
+        this.licenseExistence = -1;
+        this.netScore = -1;
     }
     //Gets the data from the interface and passes it to the sub-functions doing the calculations
     extractmetricData(data: repoData): metricData2[] 
@@ -210,7 +208,7 @@ const fakeRepoData: repoData = {
     }
 };
 
-const metricClass = new metricCalcClass(fakeRepoData, 0, 0, 0, 0, 0, 0, []);
+const metricClass = new metricCalcClass();
 const result = metricClass.getValue(fakeRepoData);
 delete result.metricData;
 //console.log(JSON.stringify(result, null, 2)); // Print the result to the console
