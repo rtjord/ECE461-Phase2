@@ -74,7 +74,7 @@ export class runAnalysis {
 
         repoData = {
             repoName: gitData.repoName,
-            repoUrl: cleanedUrl,
+            repoUrl: url,
             repoOwner: gitData.repoOwner,
             numberOfContributors: gitData.numberOfContributors,
             numberOfOpenIssues: gitData.numberOfOpenIssues,

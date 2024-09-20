@@ -3,6 +3,7 @@ import { envVars } from './tools/getEnvVars';
 import { runAnalysis } from './tools/scripts';
 import { parseURLsToArray } from './tools/urlOps';
 import { repoData } from './utils/interfaces';
+import { metricCalc } from './tools/metric_calc';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -27,10 +28,11 @@ program
         const runAnalysisClass = new runAnalysis(envVar);
         const repoData = await runAnalysisClass.runAnalysis(urlList);
         for (const repo of repoData) {
-            console.log(repo);
+            const metricCalcClass = new metricCalc();
+            const result = metricCalcClass.getValue(repo);
+            const formattedOutput = JSON.stringify(result).replace(/,/g, ', '); // Add a space after each comma
+            console.log(formattedOutput); // Outputs the result with spaces after commas
         }
-        //console.log('Analyzing URLs from file: ${urlFile}');
-
     });
 
 program

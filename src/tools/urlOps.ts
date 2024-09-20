@@ -41,7 +41,6 @@ export class urlAnalysis {
         }
 
         const registryUrl = 'https://registry.npmjs.org/'+packageName;
-        console.log(registryUrl);
         return new Promise((resolve, reject) => {
             https.get(registryUrl, (res) => {
                 let data = '';
