@@ -25,6 +25,16 @@ The program is invoked using "./run [MODE]". There are 3 different operation mod
 #### Install:
     ./run install
 #### URL_FILE:
-    ./run https://github.com/phillips302/ECE461
+    ./run SampleURLFile.txt
+
 #### Test:
     ./run test
+
+## File Example
+### SampleURLFile.txt
+    https://github.com/cloudinary/cloudinary_npm
+    https://www.npmjs.com/package/express
+    https://github.com/nullivex/nodist
+    https://github.com/lodash/lodash
+    https://www.npmjs.com/package/browserify
+    https://github.com/phillips302/ECE461
