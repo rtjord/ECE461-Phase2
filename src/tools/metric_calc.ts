@@ -20,25 +20,22 @@ export class metricCalc{
         const { numberOfOpenIssues, numberOfClosedIssues } = data;
         if(numberOfOpenIssues/numberOfClosedIssues <= 0.5){
             correctness = 1;
-            return(correctness);
         }
         else if((1 - (numberOfOpenIssues / (numberOfClosedIssues))) < 0){
             correctness = 0;
-            return(correctness);
         }
         else if(numberOfClosedIssues == 0){
             correctness = 0;
-            return(correctness);
         }
         else{
             correctness = 1 - (numberOfOpenIssues / (numberOfClosedIssues));
-            return correctness;
         }
+        return parseFloat(correctness.toFixed(3))
     }
 
     getCorrectnessLatency(latency: repoLatencyData): number 
     {
-        return parseFloat((latency.openIssues + latency.closedIssues).toFixed(3));
+        return parseFloat((Math.max(latency.openIssues, latency.closedIssues)).toFixed(3));
     }
 
     calculateBusFactor(data: repoData): number 
@@ -69,12 +66,12 @@ export class metricCalc{
         if(documentation.hasReadme == true) doc_total *= 1;
 
         const rampup = (numberOfLines > 500 ? 0.33 : 0) + (numberOfCommits > 1000 ? 0.33 : 0) + (doc_total);
-        return rampup;
+        return parseFloat((rampup).toFixed(3));
     }
 
     getRampupLatency(latency: repoLatencyData): number 
     {
-        return parseFloat((latency.numberOfLines + latency.numberOfCommits + latency.documentation).toFixed(3));
+        return parseFloat((Math.max(latency.numberOfLines, latency.numberOfCommits, latency.documentation)).toFixed(3));
     }
 
     calculateResponsiveness(data: repoData): number 
@@ -85,7 +82,9 @@ export class metricCalc{
         const timeDifference = currentDate.getTime() - commitDate.getTime();
         const monthsDifference = timeDifference / (1000 * 3600 * 24 * 12.0);
 
-        return parseFloat((1 / monthsDifference).toFixed(3));
+        let score = parseFloat((1 / monthsDifference).toFixed(3))
+
+        return Math.min(1, score);
     }
 
     checkLicenseExistence(data: repoData): number 
@@ -99,12 +98,12 @@ export class metricCalc{
     {
         // Calculate the net score based on the individual metrics
         const weightedScore = (0.3 * this.calculateResponsiveness(data)) + (0.25 * this.calculateCorrectness(data)) + (0.25 * this.calculateRampup(data)) + (0.2 * this.calculateBusFactor(data));
-        return this.checkLicenseExistence(data) === 1 ? weightedScore * 1 : weightedScore * 0;
+        return this.checkLicenseExistence(data) * parseFloat(weightedScore.toFixed(3));
     }
 
     getNetScoreLatency(latency: repoLatencyData): number 
     {
-        return parseFloat((latency.numberOfLines + latency.openIssues + latency.closedIssues + latency.openIssues + latency.licenses + latency.numberOfCommits + latency.numberOfLines + latency.documentation).toFixed(3));
+        return parseFloat(Math.max(latency.numberOfLines, latency.openIssues, latency.closedIssues, latency.openIssues, latency.licenses, latency.numberOfCommits, latency.numberOfLines, latency.documentation).toFixed(3));
     }
 
     getValue(data: repoData): metricData {
