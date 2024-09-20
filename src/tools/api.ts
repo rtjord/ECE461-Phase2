@@ -278,6 +278,7 @@ export class gitAnalysis {
     }
 
     //retrieve data for liscense
+    /*
     async fetchLicense(gitData: gitData): Promise<void> {
         this.logger.logDebug('Fetching license...');
         const approved_license = ['MIT License', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
@@ -299,6 +300,25 @@ export class gitAnalysis {
             this.logger.logDebug('License fetched successfully');
         } catch (error) {
             this.logger.logDebug(`Error fetching license for ${gitData.repoUrl}`, error);
+        }
+    }
+
+        */
+    async fetchLicense(gitData: gitData): Promise<void> {
+        this.logger.logDebug('Fetching license...');
+        try {
+            this.logger.logDebug('Fetching package.json to find the license...');
+            const packageJsonResponse = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/contents/package.json`);
+            const packageJsonContentEncoded = packageJsonResponse.data.content;
+            const packageJsonContent = Buffer.from(packageJsonContentEncoded, 'base64').toString('utf-8');
+            const packageJson = JSON.parse(packageJsonContent);
+
+            if (packageJson.license) {
+                gitData.licenses = packageJson.license;
+                this.logger.logDebug('License found in package.json');
+            }
+        } catch (packageJsonError) {
+            this.logger.logDebug(`Error fetching package.json for ${gitData.repoUrl}: ${packageJsonError}`);
         }
     }
 
