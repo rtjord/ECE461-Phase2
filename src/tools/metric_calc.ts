@@ -11,7 +11,7 @@ import { metricData1 } from '../utils/interfaces';
 //5. Push updated script to Github
 //**************************************************************************************************************************************************************** */
 
-class metricCalcClass{
+export class metricCalcClass{
     private correctness: number;
     private busFactor: number;
     private rampup: number;

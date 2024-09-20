@@ -9,6 +9,9 @@
   "author": "Garrett Phillips, Ethan James, Riley Thomas, Nilayah Peter",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^29.5.13",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
     "typescript": "^5.6.2"
   },
   "dependencies": {

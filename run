@@ -4,21 +4,20 @@
 
 #if the first argument is install then run npm install
 if [ "$1" = "install" ]; then
-    echo "Starting install..."
+    #echo "Starting install..."
     npm install
     tsc
-    #add any other dependencies needed here
     exit 0
 fi
 
 if [ -f "$1" ]; then #check if the file exists
     export $(grep -v '^#' .env | xargs)
     if [ -z "$GITHUB_TOKEN" ]; then #check if the CLOUDINARY_URL is not defined
-        echo "GITHUB_TOKEN is not set"
+        #echo "GITHUB_TOKEN is not set"
         exit 1
     fi
     if [ -z "$LOG_LEVEL" ]; then #check if the LOG_LEVEL is not defined
-        echo "LOG_LEVEL is not set"
+        #echo "LOG_LEVEL is not set"
         exit 1
     fi
     #cd "$current_dir/srcJS"
@@ -28,10 +27,10 @@ fi
 
 if [ "$1" = "test" ]; then #check if the first argument is test
     #call test suite here
-    echo "test"
+    #echo "test"
     exit 0
 fi
 
 #if the first argument is not install, a vaild file, or test, throw error
-echo "Command not valid"
+#echo "Command not valid"
 exit 1

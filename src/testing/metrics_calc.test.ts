@@ -16,11 +16,18 @@ const fakeRepoData: repoData = {
     documentation: {
         hasReadme: true,
         numLines: 1000,
-        hasToc: true,
-        hasInstallation: true,
-        hasUsage: true,
         hasExamples: true,
         hasDocumentation: true
+    },
+    latency: {
+        contributors: -1,
+        openIssues: -1,
+        closedIssues: -1,
+        lastCommitDate: -1,
+        licenses: -1,
+        numberOfCommits: -1,
+        numberOfLines: -1,
+        documentation: -1
     }
 };
 
@@ -29,7 +36,7 @@ describe('metricCalcClass', () => {
 
     beforeEach(() => {
         // Initialize the class with fakeRepoData
-        metricClass = new metricCalcClass(fakeRepoData, 0, 0, 0, 0, 0, 0, []);
+        metricClass = new metricCalcClass();
     });
 
     // Test the correctness calculation
@@ -104,11 +111,18 @@ const fakeRepoData2: repoData = {
     documentation: {
         hasReadme: true,
         numLines: 10,
-        hasToc: true,
-        hasInstallation: true,
-        hasUsage: true,
         hasExamples: true,
         hasDocumentation: true
+    },
+    latency: {
+        contributors: -1,
+        openIssues: -1,
+        closedIssues: -1,
+        lastCommitDate: -1,
+        licenses: -1,
+        numberOfCommits: -1,
+        numberOfLines: -1,
+        documentation: -1
     }
 };
 
@@ -117,7 +131,7 @@ describe('metricCalcClass', () => {
 
     beforeEach(() => {
         // Initialize the class with fakeRepoData
-        metricClass = new metricCalcClass(fakeRepoData2, 0, 0, 0, 0, 0, 0, []);
+        metricClass = new metricCalcClass();
     });
 
     // Test the correctness calculation
