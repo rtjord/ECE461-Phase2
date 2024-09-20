@@ -12,6 +12,7 @@ export interface repoData {
     numberOfCommits: number;
     numberOfLines: number;
     documentation: documentationData;
+    latency: repoLatencyData;
 }
 
 export interface gitData {
@@ -24,12 +25,25 @@ export interface gitData {
     licenses: string[];
     numberOfCommits: number;
     numberOfLines: number;
+    latency: repoLatencyData;
 }
 
 export interface npmData {
     repoUrl: string;
     lastCommitDate: string;
     documentation: documentationData;
+    latency: repoLatencyData;
+}
+
+export interface repoLatencyData {
+    contributors: number;
+    openIssues: number;
+    closedIssues: number;
+    lastCommitDate: number;
+    licenses: number;
+    numberOfCommits: number;
+    numberOfLines: number;
+    documentation: number;
 }
 
 export interface envVars {

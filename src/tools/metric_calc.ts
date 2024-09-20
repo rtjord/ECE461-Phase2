@@ -195,11 +195,18 @@ const fakeRepoData: repoData = {
     documentation: {
         hasReadme: true,
         numLines: 1000,
-        hasToc: true,
-        hasInstallation: true,
-        hasUsage: true,
         hasExamples: true,
         hasDocumentation: true
+    },
+    latency: {
+        contributors: -1,
+        openIssues: -1,
+        closedIssues: -1,
+        lastCommitDate: -1,
+        licenses: -1,
+        numberOfCommits: -1,
+        numberOfLines: -1,
+        documentation: -1
     }
 };
 

@@ -46,13 +46,21 @@ export class runAnalysis {
             documentation: {
                 hasReadme: false,
                 numLines: -1,
-                hasToc: false,
-                hasInstallation: false,
-                hasUsage: false,
                 hasExamples: false,
                 hasDocumentation: false
+            },
+            latency: {
+                contributors: -1,
+                openIssues: -1,
+                closedIssues: -1,
+                lastCommitDate: -1,
+                licenses: -1,
+                numberOfCommits: -1,
+                numberOfLines: -1,
+                documentation: -1
             }
         };
+
         if (type === -1 || cleanedUrl === '') {
             this.logger.logDebug(`Invalid URL - ${url}`);
             return repoData;
@@ -78,11 +86,18 @@ export class runAnalysis {
             documentation: {
                 hasReadme: npmData.documentation.hasReadme,
                 numLines: npmData.documentation.numLines,
-                hasToc: npmData.documentation.hasToc,
-                hasInstallation: npmData.documentation.hasInstallation,
-                hasUsage: npmData.documentation.hasUsage,
                 hasExamples: npmData.documentation.hasExamples,
                 hasDocumentation: npmData.documentation.hasDocumentation
+            },
+            latency: {
+                contributors: gitData.latency.contributors,
+                openIssues: gitData.latency.openIssues,
+                closedIssues: gitData.latency.closedIssues,
+                lastCommitDate: npmData.latency.lastCommitDate,
+                licenses: gitData.latency.licenses,
+                numberOfCommits: gitData.latency.numberOfCommits,
+                numberOfLines: gitData.latency.numberOfLines,
+                documentation: npmData.latency.documentation
             }
         };
 

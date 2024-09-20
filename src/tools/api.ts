@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as git from 'isomorphic-git';
 import * as http from 'isomorphic-git/http/node';
 import axios, { AxiosInstance } from 'axios';
-import { gitData, npmData } from '../utils/interfaces';
+import { gitData, npmData, repoLatencyData } from '../utils/interfaces';
 import { logger } from './logging';
 import { envVars } from '../utils/interfaces';
 
@@ -70,9 +70,6 @@ export class npmAnalysis {
             if (readmeContent) {
                 npmData.documentation.hasReadme = true;
                 npmData.documentation.numLines = readmeContent.split('\n').length;
-                npmData.documentation.hasToc = /[Tt]able of [Cc]ontents/i.test(readmeContent);
-                npmData.documentation.hasInstallation = /[Ii]nstall/i.test(readmeContent);
-                npmData.documentation.hasUsage = /[Uu]sage/i.test(readmeContent);
                 npmData.documentation.hasExamples = /[Ee]xamples/i.test(readmeContent);
                 npmData.documentation.hasDocumentation = /[Dd]ocumentation/i.test(readmeContent) || /[Dd]ocs/i.test(readmeContent);
             }
@@ -112,6 +109,13 @@ export class npmAnalysis {
             this.logger.logDebug(`Failed to delete repository in ${dir}:`);
         }
     }
+
+    private async executeTasks(task: (repoDir: string, npmData: npmData) => Promise<void>, repoDir: string, npmData: npmData): Promise<number> {
+        const startTime = performance.now();
+        await task(repoDir, npmData);
+        const endTime = performance.now();
+        return endTime - startTime;
+    }
     
     // Main function to run the tasks in order
     async runTasks(url: string, dest: number): Promise<npmData> {
@@ -123,17 +127,23 @@ export class npmAnalysis {
             documentation: {
                 hasReadme: false,
                 numLines: -1,
-                hasToc: false,
-                hasInstallation: false,
-                hasUsage: false,
                 hasExamples: false,
                 hasDocumentation: false,
+            },
+            latency: {
+                contributors: -1,
+                openIssues: -1,
+                closedIssues: -1,
+                lastCommitDate: -1,
+                licenses: -1,
+                numberOfCommits: -1,
+                numberOfLines: -1,
+                documentation: -1
             }
         };
-
         await this.cloneRepo(url, repoDir);
-        await this.lastCommitDate(repoDir, npmData);
-        await this.getReadmeContent(repoDir, npmData);
+        npmData.latency.lastCommitDate = await this.executeTasks(this.lastCommitDate.bind(this), repoDir, npmData);
+        npmData.latency.documentation = await this.executeTasks(this.getReadmeContent.bind(this), repoDir, npmData);
         await this.deleteRepo(repoDir);
     
         this.logger.logInfo('All npm tasks completed in order');
@@ -394,6 +404,13 @@ export class gitAnalysis {
         }
     }
 
+    private async executeTasks(task: (gitData: gitData) => Promise<void>, gitData: gitData): Promise<number> {
+        const startTime = performance.now();
+        await task(gitData);
+        const endTime = performance.now();
+        return endTime - startTime;
+    }
+
     async runTasks(url: string): Promise<gitData> {
         this.logger.logDebug('Running git tasks...');
         let gitData: gitData = {
@@ -405,17 +422,33 @@ export class gitAnalysis {
             numberOfClosedIssues: -1,
             licenses: [],
             numberOfCommits: -1,
-            numberOfLines: -1
+            numberOfLines: -1,
+            latency: {
+                contributors: -1,
+                openIssues: -1,
+                closedIssues: -1,
+                lastCommitDate: -1,
+                licenses: -1,
+                numberOfCommits: -1,
+                numberOfLines: -1,
+                documentation: -1
+            }
         };
 
         if (await this.checkConnection(url)) {
             await this.getOwnerAndRepo(gitData);
-            await this.fetchContributors(gitData);
-            await this.fetchOpenIssues(gitData);
-            await this.fetchClosedIssues(gitData); //CURRENTLY NOT WORKING FOR ONE OF THE URLS or slow
-            await this.fetchLicense(gitData); //take another way
-            await this.fetchCommits(gitData); //slow
-            await this.fetchLines(gitData); //error for some files (currently not printing error)
+            gitData.latency.contributors = await this.executeTasks(this.fetchContributors.bind(this), gitData);
+            //await this.fetchContributors(gitData);
+            gitData.latency.openIssues = await this.executeTasks(this.fetchOpenIssues.bind(this), gitData);
+            //await this.fetchOpenIssues(gitData);
+            gitData.latency.closedIssues = await this.executeTasks(this.fetchClosedIssues.bind(this), gitData);
+            //await this.fetchClosedIssues(gitData); //CURRENTLY NOT WORKING FOR ONE OF THE URLS or slow
+            gitData.latency.licenses = await this.executeTasks(this.fetchLicense.bind(this), gitData);
+            //await this.fetchLicense(gitData); //take another way
+            gitData.latency.numberOfCommits = await this.executeTasks(this.fetchCommits.bind(this), gitData);
+            //await this.fetchCommits(gitData); //slow
+            gitData.latency.numberOfLines = await this.executeTasks(this.fetchLines.bind(this), gitData);
+            //await this.fetchLines(gitData); //error for some files (currently not printing error)
     
             this.logger.logInfo('All git tasks completed in order');
             return gitData;
