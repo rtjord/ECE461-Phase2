@@ -1,5 +1,5 @@
 import { repoData } from '../utils/interfaces'; // Adjust path if needed
-import { metricCalcClass } from '../tools/metric_calc'; // Adjust path if needed
+import { metricCalc } from '../tools/metric_calc'; // Adjust path if needed
 
 // Mock Data for Testing
 const fakeRepoData: repoData = {
@@ -32,11 +32,11 @@ const fakeRepoData: repoData = {
 };
 
 describe('metricCalcClass', () => {
-    let metricClass: metricCalcClass;
+    let metricClass: metricCalc;
 
     beforeEach(() => {
         // Initialize the class with fakeRepoData
-        metricClass = new metricCalcClass();
+        metricClass = new metricCalc();
     });
 
     // Test the correctness calculation
@@ -71,7 +71,7 @@ describe('metricCalcClass', () => {
 
     // Test the net score calculation
     it('should calculate net score correctly', () => {
-        const netScore = metricClass.calculateNetScore(0.5, 1, 0.75, 0.8, 1); // Use arbitrary values for the test
+        const netScore = metricClass.calculateNetScore(fakeRepoData); // Use arbitrary values for the test
         expect(netScore).toBeGreaterThan(0); // Example test
     });
 
@@ -127,11 +127,11 @@ const fakeRepoData2: repoData = {
 };
 
 describe('metricCalcClass', () => {
-    let metricClass: metricCalcClass;
+    let metricClass: metricCalc;
 
     beforeEach(() => {
         // Initialize the class with fakeRepoData
-        metricClass = new metricCalcClass();
+        metricClass = new metricCalc();
     });
 
     // Test the correctness calculation
@@ -166,7 +166,7 @@ describe('metricCalcClass', () => {
 
     // Test the net score calculation
     it('should calculate net score correctly', () => {
-        const netScore = metricClass.calculateNetScore(0.5, 1, 0.75, 0.8, 1); // Use arbitrary values for the test
+        const netScore = metricClass.calculateNetScore(fakeRepoData2); // Use arbitrary values for the test
         expect(netScore).toBeGreaterThan(0); // Example test
     });
 
