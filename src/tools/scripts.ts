@@ -24,9 +24,11 @@ export class runAnalysis {
             this.logger.logInfo('No valid token provided');
             process.exit(1);
         }
-        
+        const start = performance.now();
         const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index));
         const repoDataArr = await Promise.all(repoDataPromises);
+        const end = performance.now();
+        this.logger.logInfo(`Total time taken: ${end - start}ms`);
         return repoDataArr;
     }
 
@@ -67,14 +69,14 @@ export class runAnalysis {
         }
 
         const [npmData, gitData] = await Promise.all([
-            await this.npmAnalysis.runTasks(cleanedUrl, index),
-            await this.gitAnalysis.runTasks(cleanedUrl)
+            this.npmAnalysis.runTasks(cleanedUrl, index),
+            this.gitAnalysis.runTasks(cleanedUrl)
         ]);
 
 
         repoData = {
             repoName: gitData.repoName,
-            repoUrl: cleanedUrl,
+            repoUrl: url,
             repoOwner: gitData.repoOwner,
             numberOfContributors: gitData.numberOfContributors,
             numberOfOpenIssues: gitData.numberOfOpenIssues,

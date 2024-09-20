@@ -1,4 +1,4 @@
-import { documentationData } from "./types";
+import { documentationData, repoLatencyData } from "./types";
 
 export interface repoData {
     repoName: string;
@@ -33,17 +33,6 @@ export interface npmData {
     lastCommitDate: string;
     documentation: documentationData;
     latency: repoLatencyData;
-}
-
-export interface repoLatencyData {
-    contributors: number;
-    openIssues: number;
-    closedIssues: number;
-    lastCommitDate: number;
-    licenses: number;
-    numberOfCommits: number;
-    numberOfLines: number;
-    documentation: number;
 }
 
 export interface envVars {
