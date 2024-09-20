@@ -12,7 +12,7 @@ export class npmAnalysis {
     constructor(envVars: envVars) {
         this.logger = new logger(envVars);
     }
-
+/*
     private async cloneRepo(url: string, dir: string): Promise<void> {
         try {
             // Check if the directory already exists
@@ -26,6 +26,30 @@ export class npmAnalysis {
             }
 
             // Proceed to clone the repository
+            this.logger.logInfo('Cloning repository...');
+            await git.clone({
+                fs,
+                http,
+                dir,
+                url,
+                singleBranch: true,
+            });
+            this.logger.logInfo('Repository cloned.');
+        } catch (err) {
+            this.logger.logDebug(`Error cloning repository for ${url} in ${dir}`);
+        }
+    }
+*/
+    private async cloneRepo(url: string, dir: string): Promise<void> {
+        try {
+            try {
+                await fs.access(dir);
+                this.logger.logInfo(`Repository already exists in directory: ${dir}`);
+                return;
+            } catch (err) {
+                this.logger.logDebug('Directory does not exist, proceeding to clone...');
+            }
+
             this.logger.logInfo('Cloning repository...');
             await git.clone({
                 fs,
@@ -188,6 +212,7 @@ export class gitAnalysis {
         let isValid = false;
         const response = await this.axiosInstance.get('https://github.com/lodash/lodash');
         response.status === 200 ? isValid = true : isValid = false;
+        this.logger.logInfo(`Token is valid: ${isValid}`);
         return isValid;
     }
 
@@ -450,14 +475,6 @@ export class gitAnalysis {
 
         if (await this.checkConnection(url)) {
             await this.getOwnerAndRepo(gitData);
-            /*
-            gitData.latency.contributors = await this.executeTasks(this.fetchContributors.bind(this), gitData);
-            gitData.latency.openIssues = await this.executeTasks(this.fetchOpenIssues.bind(this), gitData);
-            gitData.latency.closedIssues = await this.executeTasks(this.fetchClosedIssues.bind(this), gitData);
-            gitData.latency.licenses = await this.executeTasks(this.fetchLicense.bind(this), gitData);
-            gitData.latency.numberOfCommits = await this.executeTasks(this.fetchCommits.bind(this), gitData);
-            gitData.latency.numberOfLines = await this.executeTasks(this.fetchLines.bind(this), gitData);
-            */
             [ gitData.latency.contributors,
               gitData.latency.openIssues,
               gitData.latency.closedIssues,
