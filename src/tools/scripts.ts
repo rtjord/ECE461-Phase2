@@ -1,7 +1,7 @@
 import { urlAnalysis } from './urlOps';
 import { repoData } from '../utils/interfaces';
 import { gitAnalysis, npmAnalysis } from './api';
-import { getEnvVars } from './getEnvVars';
+import { envVars } from '../utils/interfaces';
 import { logger } from './logging';
 
 export class runAnalysis {
@@ -11,7 +11,7 @@ export class runAnalysis {
     private token: string;
     private logger: logger;
 
-    constructor(envVars: getEnvVars) {
+    constructor(envVars: envVars) {
         this.token = envVars.token;
         this.logger = new logger(envVars);
         this.npmAnalysis = new npmAnalysis(envVars);
