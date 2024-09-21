@@ -16,13 +16,6 @@ program
     .description('ECE461 Package Registry Analysis Phase 1')
 
 program
-    .command('install')
-    .description('Install all required packages')
-    .action((name) => {
-        console.log('NEED TO INSTALL');
-    });
-
-program
     .argument('<URL_FILE>', 'File containing URLs to analyze')
     .action(async (urlFile: string) => {
         const envVar: envVars = new getEnvVars();
