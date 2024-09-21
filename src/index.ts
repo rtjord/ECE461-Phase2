@@ -43,8 +43,21 @@ program
     .description('Run tests')
     .action(() => {
         exec('npx jest --coverage ./srcJS/tests/', (error, stdout, stderr) => {
-            console.log(`Test output:\n${stderr}\n${stdout}\n${error}`);
-            process.exit(0);
+            let totalTests = '0';
+            let passedTests = '0';
+
+            let coverage = (parseInt(((stdout.split('\n'))[3].split('|'))[4])).toString().trim();
+            let testMatches = stderr.split('\n')[5].match(/(\d+) passed, (\d+) total/);
+            if(testMatches) {
+                totalTests = testMatches[1];
+                passedTests = testMatches[2];
+            }
+
+            // Format and display the final output in the desired structure
+            console.log(`Total: ${totalTests}`);
+            console.log(`Passed: ${passedTests}`);
+            console.log(`Coverage: ${coverage}%`);
+            console.log(`${passedTests}/${totalTests} test cases passed. ${coverage}% line coverage achieved.`);
         });
     });
 
