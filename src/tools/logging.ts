@@ -68,5 +68,4 @@ export class logger {
     private writeLog(message: string) {
         fs.appendFileSync(this.logFile, message + '\n', 'utf8'); //Makes sures nothing is overwritten
     }
-
 }

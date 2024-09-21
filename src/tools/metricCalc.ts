@@ -1,36 +1,22 @@
-//HOW DO I WRITE THIS IMPORT STATEMENT CORRECTLY???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-import { repoData } from '../utils/interfaces'; // Assuming the path is correct
+import { repoData } from '../utils/interfaces';
 import { metricData } from '../utils/interfaces';
 import { repoLatencyData } from '../utils/types';
-
-//***********************************************************************NOTES************************************************************************************ */
-//1. Figure out if its imported correctly
-//2. Figure out if the data is being passsed in correctly
-//3. Figure out variable name for the size of the ReadME
-//4. Test run this with fake data
-//5. Push updated script to Github
-//**************************************************************************************************************************************************************** */
 
 export class metricCalc{
 
     calculateCorrectness(data: repoData): number 
     {
         // Calculate correctness metric based on the data
-        let correctness = 0;
         const { numberOfOpenIssues, numberOfClosedIssues } = data;
-        if(numberOfOpenIssues/numberOfClosedIssues <= 0.5){
-            correctness = 1;
+        if( numberOfClosedIssues == 0 || (numberOfOpenIssues / numberOfClosedIssues) >= 1) {
+            return 0;
         }
-        else if((1 - (numberOfOpenIssues / (numberOfClosedIssues))) < 0){
-            correctness = 0;
-        }
-        else if(numberOfClosedIssues == 0){
-            correctness = 0;
+        else if(numberOfOpenIssues/numberOfClosedIssues <= 0.5) {
+            return 1;
         }
         else{
-            correctness = 1 - (numberOfOpenIssues / (numberOfClosedIssues));
+            return parseFloat((1 - (numberOfOpenIssues / numberOfClosedIssues)).toFixed(3));
         }
-        return parseFloat(correctness.toFixed(3))
     }
 
     getCorrectnessLatency(latency: repoLatencyData): number 
@@ -55,7 +41,6 @@ export class metricCalc{
     calculateRampup(data: repoData): number
     {
         // Calculate rampup metric based on the data
-        // Example:
         const { numberOfLines, numberOfCommits, documentation } = data;
         let doc_total = 0;
         
@@ -76,17 +61,6 @@ export class metricCalc{
 
     calculateResponsiveness(data: repoData): number 
     {
-        /*
-        // Calculate responsiveness metric based on the data
-        const currentDate = new Date();
-        const commitDate = new Date(data.lastCommitDate);
-        const timeDifference = currentDate.getTime() - commitDate.getTime();
-        const monthsDifference = timeDifference / (1000 * 3600 * 24 * 12.0);
-
-        let score = parseFloat((1 / monthsDifference).toFixed(3))
-
-        return Math.min(1, score);
-        */
         // Calculate responsiveness metric based on the data
         const currentDate = new Date();
         const commitDate = new Date(data.lastCommitDate);
@@ -108,7 +82,12 @@ export class metricCalc{
     {
         // Check if a specific license exists in the data
         const allowedLicenses = ['MIT', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
-        return data.licenses[0] == '' ? 0 : 1;
+        for(let i = 0; i < allowedLicenses.length; i++){
+            if ((data.licenses).includes(allowedLicenses[i])){
+                return 1;
+            }
+        }
+        return 0;
     }
 
     calculateNetScore(data: repoData): number 

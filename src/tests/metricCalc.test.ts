@@ -1,5 +1,5 @@
-import { repoData } from '../utils/interfaces'; // Adjust path if needed
-import { metricCalc } from '../tools/metric_calc'; // Adjust path if needed
+import { repoData } from '../utils/interfaces';
+import { metricCalc } from '../tools/metricCalc';
 
 // Mock Data for Testing
 const fakeRepoData: repoData = {
