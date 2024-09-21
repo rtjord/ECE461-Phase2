@@ -45,13 +45,24 @@ program
         exec('npx jest --coverage ./srcJS/tests/', (error, stdout, stderr) => {
             let totalTests = '0';
             let passedTests = '0';
+            let coverage = '0';
 
-            let coverage = (parseInt(((stdout.split('\n'))[3].split('|'))[4])).toString().trim();
-            let testMatches = stderr.split('\n')[5].match(/(\d+) passed, (\d+) total/);
-            if(testMatches) {
-                totalTests = testMatches[1];
-                passedTests = testMatches[2];
-            }
+            (stdout.split('\n')).forEach(element => {
+                if (element.includes("All files")){
+                    let coverageArray = element.split('|');
+                    coverage = parseInt(coverageArray[coverageArray.length - 2]).toString().trim();
+                }
+            });
+
+            stderr.split('\n').forEach(element => {
+                if (element.includes("Tests:")){
+                    let testMatches = element.match(/(\d+) passed, (\d+) total/);
+                    if(testMatches) {
+                        passedTests = testMatches[1];
+                        totalTests = testMatches[2];
+                    }
+                }
+            });
 
             // Format and display the final output in the desired structure
             console.log(`Total: ${totalTests}`);
