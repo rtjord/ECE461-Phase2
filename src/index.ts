@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { exec } from 'child_process';
-import { envVars } from './tools/getEnvVars';
+import { getEnvVars } from './tools/getEnvVars';
 import { runAnalysis } from './tools/scripts';
 import { parseURLsToArray } from './tools/urlOps';
 import { repoData } from './utils/interfaces';
@@ -24,7 +24,7 @@ program
 program
     .argument('<URL_FILE>', 'File containing URLs to analyze')
     .action(async (urlFile: string) => {
-        const envVar: envVars = new envVars();
+        const envVar: getEnvVars = new getEnvVars();
         const urlList: string[] = await parseURLsToArray(urlFile);
         const runAnalysisClass = new runAnalysis(envVar);
         const repoData = await runAnalysisClass.runAnalysis(urlList);
