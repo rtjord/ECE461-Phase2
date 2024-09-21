@@ -64,6 +64,7 @@ export class metricCalc{
 
     calculateResponsiveness(data: repoData): number 
     {
+        /*
         // Calculate responsiveness metric based on the data
         const currentDate = new Date();
         const commitDate = new Date(data.lastCommitDate);
@@ -73,6 +74,22 @@ export class metricCalc{
         let score = parseFloat((1 / monthsDifference).toFixed(3))
 
         return Math.min(1, score);
+        */
+        // Calculate responsiveness metric based on the data
+        const currentDate = new Date();
+        const commitDate = new Date(data.lastCommitDate);
+
+        const yearDifference = currentDate.getFullYear() - commitDate.getFullYear();
+        const monthDifference = currentDate.getMonth() - commitDate.getMonth();
+        
+        // Total month difference as an integer
+        const totalMonthsDifference = yearDifference * 12 + monthDifference;
+        
+        // Ensure the difference is not negative (for future dates)
+        const monthsDifference = Math.max(totalMonthsDifference, 0);
+        const score = Math.max(0, 1 - (monthsDifference / 12));
+        
+        return score;
     }
 
     checkLicenseExistence(data: repoData): number 
