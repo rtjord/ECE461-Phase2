@@ -34,6 +34,7 @@ program
             const formattedOutput = JSON.stringify(result).replace(/,/g, ', '); // Add a space after each comma
             console.log(formattedOutput); // Outputs the result with spaces after commas
         }
+        process.exit(0);
     });
 
 program

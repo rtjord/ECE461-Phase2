@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { logger } from './logging';
 
 export class envVars {
     public logLevel: number;
@@ -9,14 +10,12 @@ export class envVars {
         dotenv.config({ path: '../.env' });
         const token = process.env.GITHUB_TOKEN;
         if (token === undefined) {
-            console.error('GitHub token is not defined in environment variables');
             process.exit(1);
         }
         this.token = token;
         this.logLevel = Number(process.env.LOG_LEVEL);
         const logFilePath = process.env.LOG_FILE;
         if (logFilePath === undefined) {
-            console.error('Log path is not defined in environment variables');
             process.exit(1);
         }
         this.logFilePath = logFilePath;

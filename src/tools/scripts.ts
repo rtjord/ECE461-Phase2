@@ -16,7 +16,7 @@ export class runAnalysis {
         this.logger = new logger(envVars);
         this.npmAnalysis = new npmAnalysis(envVars);
         this.gitAnalysis = new gitAnalysis(envVars);
-        this.urlAnalysis = new urlAnalysis();
+        this.urlAnalysis = new urlAnalysis(envVars);
     }
 
     async runAnalysis(urls: string[]): Promise<repoData[]> {

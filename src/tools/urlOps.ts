@@ -1,8 +1,16 @@
 import * as fs from 'fs';
 import * as https from 'https';
 import * as readline from 'readline';
+import { logger } from './logging';
+import { envVars } from '../utils/interfaces';
 
 export class urlAnalysis {
+    private logger: logger;
+
+    constructor(envVars: envVars) {
+        this.logger = new logger(envVars);
+    }
+
     async evalUrl(url: string): Promise<[number, string]> {
         const npmPattern = /^https:\/\/www\.npmjs\.com\/package\/[\w-]+$/;
         const gitPattern = /^https:\/\/github\.com\/[\w-]+\/[\w-]+$/;
@@ -15,7 +23,7 @@ export class urlAnalysis {
                 let repoUrl = await this.getRepositoryUrl(url);
                 return [0, repoUrl || ''];  // Ensure we return an empty string if repoUrl is null
             } catch (error) {
-                console.error('Error fetching repository URL:', error);
+                this.logger.logDebug('Error fetching repository URL:', error);
                 return [-1, ''];  // Return error code and empty string on failure
             }
         } else {
@@ -29,7 +37,7 @@ export class urlAnalysis {
           const parts = url.split('/');
           return parts[parts.length - 1];  // Get the last part of the URL
         } else {
-          console.error('Invalid npm package URL');
+          this.logger.logDebug('Invalid npm package URL');
           return null;
         }
     }
