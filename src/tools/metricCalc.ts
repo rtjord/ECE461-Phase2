@@ -8,6 +8,12 @@ export class metricCalc{
     {
         // Calculate correctness metric based on the data
         const { numberOfOpenIssues, numberOfClosedIssues } = data;
+
+        //if number of issues is not found
+        if(numberOfClosedIssues == -1 || numberOfOpenIssues == -1) {
+            return 0;
+        }
+
         if( numberOfClosedIssues == 0 || (numberOfOpenIssues / numberOfClosedIssues) >= 1) {
             return 0;
         }
@@ -27,6 +33,12 @@ export class metricCalc{
     calculateBusFactor(data: repoData): number 
     {
         const { numberOfContributors } = data;
+
+        //if number of contributors is not found
+        if(numberOfContributors == -1) {
+            return 0;
+        }
+
         let busFactor = 0;
 
         if (numberOfContributors < 15) busFactor = 0;
@@ -42,6 +54,12 @@ export class metricCalc{
     {
         // Calculate rampup metric based on the data
         const { numberOfLines, numberOfCommits, documentation } = data;
+
+        //if variables used in calculation are not found
+        if(numberOfLines == -1 || numberOfCommits == -1 || documentation.numLines == -1) {
+            return 0;
+        }
+
         let doc_total = 0;
         
         //Create the weightage for the Readme
@@ -62,6 +80,12 @@ export class metricCalc{
     calculateResponsiveness(data: repoData): number 
     {
         // Calculate responsiveness metric based on the data
+
+        //if last commit date is not found
+        if(data.lastCommitDate == '') {
+            return 0;
+        }
+
         const currentDate = new Date();
         const commitDate = new Date(data.lastCommitDate);
 
