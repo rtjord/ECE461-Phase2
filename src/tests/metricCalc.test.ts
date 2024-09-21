@@ -1,7 +1,7 @@
 import { repoData } from '../utils/interfaces';
 import { metricCalc } from '../tools/metricCalc';
 
-// Mock Data for Testing w vaid data
+// Mock Data for testing with vaild data
 const fakeRepoData: repoData = {
     repoName: 'example-repo',
     repoUrl: 'https://github.com/example-repo',
@@ -30,6 +30,7 @@ const fakeRepoData: repoData = {
         documentation: 0
     }
 };
+
 // Mock testing for testing with invalid Data
 const invalidData: repoData = {
     repoName: 'example-repo',
@@ -97,17 +98,7 @@ describe('metricCalcClass', () => {
     //Test the correctness calculation with invalid data
     it('Calculate correctness metric with invalid data', () => {
         const correctness = metricClass.calculateCorrectness(invalidData);
-        expect(correctness).toEqual(0); // Update the expected value based on your formula
-    });
-
-    it('Calculate correctness metric with invalid data', () => {
-        const correctness = metricClass.calculateCorrectness(invalidData);
-        expect(correctness).toEqual(0); // Update the expected value based on your formula
-    });
-
-    it('Calculate correctness metric with invalid data', () => {
-        const correctness = metricClass.calculateCorrectness(invalidData);
-        expect(correctness).toEqual(0); // Update the expected value based on your formula
+        expect(correctness).toEqual(0); //returns zero when score can not be calculated
     });
 
     // Test the bus factor calculation with valid data
@@ -143,49 +134,73 @@ describe('metricCalcClass', () => {
     //Test bus factor with invalid data
     it('Calculate bus factor with invalid data', () => {
         const busFactor = metricClass.calculateBusFactor(invalidData);
-        expect(busFactor).toEqual(0);
+        expect(busFactor).toEqual(0); //returns zero when score can not be calculated
     });
-
 
     // Test the ramp-up calculation with valid data
     it('Calculate ramp-up with valid inputs', () => {
         const rampup = metricClass.calculateRampup(fakeRepoData);
-        expect(rampup).toBeGreaterThan(0); // Adjust according to your expectations
+        expect(rampup).toEqual(1);
+    });
+
+    it('Calculate ramp-up with valid inputs', () => {
+        fakeRepoData.documentation.hasReadme = false;
+        const rampup = metricClass.calculateRampup(fakeRepoData);
+        expect(rampup).toEqual(0.66); 
     });
     
     it('Calculate ramp-up with valid inputs', () => {
-        fakeRepoData.documentation.hasReadme = false;
-        fakeRepoData.documentation.numLines = 10;
-        const responsiveness = metricClass.calculateResponsiveness(fakeRepoData);
-        expect(responsiveness).toBeGreaterThan(0); // Example responsiveness test
+        fakeRepoData.documentation.hasReadme = true;
+        fakeRepoData.documentation.numLines = 100;
+        const rampup = metricClass.calculateRampup(fakeRepoData);
+        expect(rampup).toEqual(0.9); 
+    });
+
+    it('Calculate ramp-up with valid inputs', () => {
+        fakeRepoData.documentation.hasExamples = false;
+        const rampup = metricClass.calculateRampup(fakeRepoData);
+        expect(rampup).toEqual(0.8); 
+    });
+
+    it('Calculate ramp-up with valid inputs', () => {
+        fakeRepoData.documentation.hasDocumentation = false;
+        const rampup = metricClass.calculateRampup(fakeRepoData);
+        expect(rampup).toEqual(0.66); 
+    });
+
+    it('Calculate ramp-up with valid inputs', () => {
+        fakeRepoData.numberOfLines = 400;
+        const rampup = metricClass.calculateRampup(fakeRepoData);
+        expect(rampup).toEqual(0.33); 
+    });
+
+    it('Calculate ramp-up with valid inputs', () => {
+        fakeRepoData.numberOfCommits = 900;
+        const rampup = metricClass.calculateRampup(fakeRepoData);
+        expect(rampup).toEqual(0); 
     });
 
     //Test the ramp-up calculation with invalid data
     it('Calculate ramp-up with invalid inputs', () => {
         const rampup = metricClass.calculateRampup(invalidData);
-        expect(rampup).toEqual(0); // Adjust according to your expectations
-    });
-    
-    it('Calculate ramp-up with invalid inputs', () => {
-        const responsiveness = metricClass.calculateRampup(invalidData);
-        expect(responsiveness).toEqual(0); // Example responsiveness test
+        expect(rampup).toEqual(0);
     });
 
     // Test the responsiveness calculation with valid data
     it('Calculate responsiveness with valid inputs', () => {
         const responsiveness = metricClass.calculateResponsiveness(fakeRepoData);
-        expect(responsiveness).toBeGreaterThan(0); // Example responsiveness test
+        expect(responsiveness).toBeGreaterThan(0);
     });
 
     //Test the responsiveness calculation with invalid data
     it('Calculate responsiveness with invalid inputs', () => {
         const responsiveness = metricClass.calculateResponsiveness(invalidData);
-        expect(responsiveness).toEqual(0); // Example responsiveness test
+        expect(responsiveness).toEqual(0); 
     });
 
     // Test the license existence check
-    it('Calculate license existence with valid inputs', () => {
-        const licenseExistence = metricClass.checkLicenseExistence(fakeRepoData);
+    it('Calculate license existence with invalid inputs', () => {
+        const licenseExistence = metricClass.checkLicenseExistence(invalidData);
         expect(licenseExistence).toEqual(0); // Blank license should equal 0
     });
 
@@ -195,16 +210,35 @@ describe('metricCalcClass', () => {
         expect(licenseExistence).toEqual(1); // MIT License should pass
     });
 
+    it('Calculate license existence with valid inputs', () => {
+        fakeRepoData.licenses = ['BSD-3-Clause'];
+        const licenseExistence = metricClass.checkLicenseExistence(fakeRepoData);
+        expect(licenseExistence).toEqual(1); // License should pass
+    });
+
+    it('Calculate license existence with valid inputs', () => {
+        fakeRepoData.licenses = ['Apache-2.0'];
+        const licenseExistence = metricClass.checkLicenseExistence(fakeRepoData);
+        expect(licenseExistence).toEqual(1); // License should pass
+    });
+
+    it('Calculate license existence with valid inputs', () => {
+        fakeRepoData.licenses = ['LGPL-2.1'];
+        const licenseExistence = metricClass.checkLicenseExistence(fakeRepoData);
+        expect(licenseExistence).toEqual(1); // License should pass
+    });
+
     // Test the net score calculation
     it('Calculate net score with valid inputs', () => {
         const netScore = metricClass.calculateNetScore(fakeRepoData); // Use arbitrary values for the test
-        expect(netScore).toBeGreaterThan(0); // Example test
+        expect(netScore).toBeGreaterThan(0);
+        expect(netScore).toBeLessThan(1);
     });
 
     //Test the net score calculation with invalid data
     it('Calculate net score with valid inputs', () => {
         const netScore = metricClass.calculateNetScore(invalidData); // Use arbitrary values for the test
-        expect(netScore).toEqual(0); // Example test
+        expect(netScore).toEqual(0);
     });
 
     // Test the overall getValue function
@@ -218,5 +252,4 @@ describe('metricCalcClass', () => {
         expect(result).toHaveProperty('ResponsiveMaintainer');
         expect(result).toHaveProperty('License');
     });
-    
 });
