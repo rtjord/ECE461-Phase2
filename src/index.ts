@@ -42,8 +42,9 @@ program
     .command('test')
     .description('Run tests')
     .action(() => {
-        exec('npx jest --coverage ./srcJS/tests/npmAnalysis', (error, stdout, stderr) => {
+        exec('npx jest --coverage ./srcJS/tests/', (error, stdout, stderr) => {
           if (error || stderr) {
+            console.error(`Error: ${error || stderr}`);
             process.exit(1);
           }
           console.log(`Test output:\n${stdout}`);
