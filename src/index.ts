@@ -4,7 +4,7 @@ import { envVars } from './tools/getEnvVars';
 import { runAnalysis } from './tools/scripts';
 import { parseURLsToArray } from './tools/urlOps';
 import { repoData } from './utils/interfaces';
-import { metricCalc } from './tools/metric_calc';
+import { metricCalc } from './tools/metricCalc';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -28,11 +28,11 @@ program
         const urlList: string[] = await parseURLsToArray(urlFile);
         const runAnalysisClass = new runAnalysis(envVar);
         const repoData = await runAnalysisClass.runAnalysis(urlList);
+        
         for (const repo of repoData) {
             const metricCalcClass = new metricCalc();
             const result = metricCalcClass.getValue(repo);
-            const formattedOutput = JSON.stringify(result).replace(/,/g, ', '); // Add a space after each comma
-            console.log(formattedOutput); // Outputs the result with spaces after commas
+            console.log(JSON.stringify(result).replace(/,/g, ', '));
         }
     });
 
@@ -40,19 +40,19 @@ program
     .command('test')
     .description('Run tests')
     .action(() => {
-        exec('npx jest ./srcJS/testing/', (error, stdout, stderr) => {
+        exec('npx jest ./srcJS/tests/', (error, stdout, stderr) => {
           if (error) {
             console.error(`Error running tests: ${error.message}`);
             return;
           }
-    
+
           if (stderr) {
             console.error(`Test error output: ${stderr}`);
             return;
           }
-    
+
           console.log(`Test output:\n${stdout}`);
         });
-      });
+    });
 
 program.parse(process.argv);
