@@ -7,18 +7,16 @@ export class metricCalc{
     calculateCorrectness(data: repoData): number 
     {
         // Calculate correctness metric based on the data
-        let correctness = 0;
         const { numberOfOpenIssues, numberOfClosedIssues } = data;
-        if(numberOfOpenIssues/numberOfClosedIssues <= 0.5){
-            correctness = 1;
+        if( numberOfClosedIssues == 0 || (numberOfOpenIssues / numberOfClosedIssues) >= 1) {
+            return 0;
         }
-        else if((1 - (numberOfOpenIssues / (numberOfClosedIssues))) < 0 || numberOfClosedIssues == 0){
-            correctness = 0;
+        else if(numberOfOpenIssues/numberOfClosedIssues <= 0.5) {
+            return 1;
         }
         else{
-            correctness = 1 - (numberOfOpenIssues / (numberOfClosedIssues));
+            return parseFloat((1 - (numberOfOpenIssues / numberOfClosedIssues)).toFixed(3));
         }
-        return parseFloat(correctness.toFixed(3))
     }
 
     getCorrectnessLatency(latency: repoLatencyData): number 
