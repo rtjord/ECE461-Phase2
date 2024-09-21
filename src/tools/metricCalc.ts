@@ -43,7 +43,6 @@ export class metricCalc{
     calculateRampup(data: repoData): number
     {
         // Calculate rampup metric based on the data
-        // Example:
         const { numberOfLines, numberOfCommits, documentation } = data;
         let doc_total = 0;
         
@@ -64,17 +63,6 @@ export class metricCalc{
 
     calculateResponsiveness(data: repoData): number 
     {
-        /*
-        // Calculate responsiveness metric based on the data
-        const currentDate = new Date();
-        const commitDate = new Date(data.lastCommitDate);
-        const timeDifference = currentDate.getTime() - commitDate.getTime();
-        const monthsDifference = timeDifference / (1000 * 3600 * 24 * 12.0);
-
-        let score = parseFloat((1 / monthsDifference).toFixed(3))
-
-        return Math.min(1, score);
-        */
         // Calculate responsiveness metric based on the data
         const currentDate = new Date();
         const commitDate = new Date(data.lastCommitDate);
@@ -96,7 +84,12 @@ export class metricCalc{
     {
         // Check if a specific license exists in the data
         const allowedLicenses = ['MIT', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
-        return data.licenses[0] == '' ? 0 : 1;
+        for(let i = 0; i < allowedLicenses.length; i++){
+            if ((data.licenses).includes(allowedLicenses[i])){
+                return 1;
+            }
+        }
+        return 0;
     }
 
     calculateNetScore(data: repoData): number 
