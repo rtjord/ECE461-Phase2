@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { exec } from 'child_process';
-import { envVars } from './tools/getEnvVars';
+import { getEnvVars } from './tools/getEnvVars';
+import { envVars } from './utils/interfaces';
 import { runAnalysis } from './tools/scripts';
 import { parseURLsToArray } from './tools/urlOps';
 import { repoData } from './utils/interfaces';
@@ -24,7 +25,7 @@ program
 program
     .argument('<URL_FILE>', 'File containing URLs to analyze')
     .action(async (urlFile: string) => {
-        const envVar: envVars = new envVars();
+        const envVar: envVars = new getEnvVars();
         const urlList: string[] = await parseURLsToArray(urlFile);
         const runAnalysisClass = new runAnalysis(envVar);
         const repoData = await runAnalysisClass.runAnalysis(urlList);
@@ -41,17 +42,10 @@ program
     .command('test')
     .description('Run tests')
     .action(() => {
-        exec('npx jest ./srcJS/tests/', (error, stdout, stderr) => {
-          if (error) {
-            console.error(`Error running tests: ${error.message}`);
-            return;
+        exec('npx jest --coverage ./srcJS/tests/npmAnalysis', (error, stdout, stderr) => {
+          if (error || stderr) {
+            process.exit(1);
           }
-
-          if (stderr) {
-            console.error(`Test error output: ${stderr}`);
-            return;
-          }
-
           console.log(`Test output:\n${stdout}`);
         });
     });

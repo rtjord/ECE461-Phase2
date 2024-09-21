@@ -13,7 +13,7 @@ export class npmAnalysis {
         this.logger = new logger(envVars);
     }
 
-    private async cloneRepo(url: string, dir: string): Promise<void> {
+    async cloneRepo(url: string, dir: string): Promise<void> {
         try {
             try {
                 await fs.access(dir);
@@ -37,7 +37,7 @@ export class npmAnalysis {
         }
     }
 
-    private async getReadmeContent(dir: string, npmData: npmData): Promise<void> {
+    async getReadmeContent(dir: string, npmData: npmData): Promise<void> {
         try {
             const oid = await git.resolveRef({ fs, dir, ref: 'HEAD' });
             const { tree } = await git.readTree({ fs, dir, oid });
@@ -67,7 +67,7 @@ export class npmAnalysis {
             if (readmeContent) {
                 npmData.documentation.hasReadme = true;
                 npmData.documentation.numLines = readmeContent.split('\n').length;
-                npmData.documentation.hasExamples = /[Ee]xamples/i.test(readmeContent);
+                npmData.documentation.hasExamples = /[Ee]xample/i.test(readmeContent);
                 npmData.documentation.hasDocumentation = /[Dd]ocumentation/i.test(readmeContent) || /[Dd]ocs/i.test(readmeContent);
             }
         } catch (err) {
@@ -75,7 +75,7 @@ export class npmAnalysis {
         }
     } 
 
-    private async lastCommitDate(dir: string, npmData: npmData): Promise<void> {
+    async lastCommitDate(dir: string, npmData: npmData): Promise<void> {
         this.logger.logDebug('Finding time since last commit...');
         try {
             const commits = await git.log({ fs, dir, depth: 1 });
@@ -83,7 +83,7 @@ export class npmAnalysis {
         
             if (lastCommit) {
               const lastCommitDate = new Date(lastCommit.commit.author.timestamp * 1000);
-              npmData.lastCommitDate = lastCommitDate.toDateString();;
+              npmData.lastCommitDate = lastCommitDate.toDateString();
             } else {
                 this.logger.logDebug('No commits found in the repository.');
             }
@@ -92,7 +92,7 @@ export class npmAnalysis {
         }
     }
     
-    private async deleteRepo(dir: string): Promise<void> {
+    async deleteRepo(dir: string): Promise<void> {
         this.logger.logDebug('Deleting repository...');
         try {
             await fs.rm(dir, { recursive: true, force: true });
@@ -141,7 +141,7 @@ export class npmAnalysis {
             this.executeTasks(this.lastCommitDate.bind(this), repoDir, npmData),
             this.executeTasks(this.getReadmeContent.bind(this), repoDir, npmData)
         ]);
-        this.deleteRepo(repoDir);
+        await this.deleteRepo(repoDir);
     
         this.logger.logInfo('All npm tasks completed in order');
         return npmData;

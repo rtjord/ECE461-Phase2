@@ -1,7 +1,8 @@
 import { urlAnalysis } from './urlOps';
 import { repoData } from '../utils/interfaces';
 import { gitAnalysis, npmAnalysis } from './api';
-import { envVars } from './getEnvVars';
+import { getEnvVars } from './getEnvVars';
+import { envVars } from '../utils/interfaces';
 import { logger } from './logging';
 
 export class runAnalysis {
