@@ -1,7 +1,6 @@
 import { urlAnalysis } from './urlOps';
 import { repoData } from '../utils/interfaces';
 import { gitAnalysis, npmAnalysis } from './api';
-import { getEnvVars } from './getEnvVars';
 import { envVars } from '../utils/interfaces';
 import { logger } from './logging';
 

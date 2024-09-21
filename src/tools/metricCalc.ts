@@ -8,6 +8,12 @@ export class metricCalc{
     {
         // Calculate correctness metric based on the data
         const { numberOfOpenIssues, numberOfClosedIssues } = data;
+
+        //if number of issues is not found
+        if(numberOfClosedIssues == -1 || numberOfOpenIssues == -1) {
+            return 0;
+        }
+
         if( numberOfClosedIssues == 0 || (numberOfOpenIssues / numberOfClosedIssues) >= 1) {
             return 0;
         }
@@ -21,12 +27,18 @@ export class metricCalc{
 
     getCorrectnessLatency(latency: repoLatencyData): number 
     {
-        return parseFloat((Math.max(latency.openIssues, latency.closedIssues)).toFixed(3));
+        return parseFloat((Math.max(latency.openIssues, latency.closedIssues) / 1000).toFixed(3));
     }
 
     calculateBusFactor(data: repoData): number 
     {
         const { numberOfContributors } = data;
+
+        //if number of contributors is not found
+        if(numberOfContributors == -1) {
+            return 0;
+        }
+
         let busFactor = 0;
 
         if (numberOfContributors < 15) busFactor = 0;
@@ -42,6 +54,12 @@ export class metricCalc{
     {
         // Calculate rampup metric based on the data
         const { numberOfLines, numberOfCommits, documentation } = data;
+
+        //if variables used in calculation are not found
+        if(numberOfLines == -1 || numberOfCommits == -1 || documentation.numLines == -1) {
+            return 0;
+        }
+
         let doc_total = 0;
         
         //Create the weightage for the Readme
@@ -56,12 +74,18 @@ export class metricCalc{
 
     getRampupLatency(latency: repoLatencyData): number 
     {
-        return parseFloat((Math.max(latency.numberOfLines, latency.numberOfCommits, latency.documentation)).toFixed(3));
+        return parseFloat((Math.max(latency.numberOfLines, latency.numberOfCommits, latency.documentation) / 1000).toFixed(3));
     }
 
     calculateResponsiveness(data: repoData): number 
     {
         // Calculate responsiveness metric based on the data
+
+        //if last commit date is not found
+        if(data.lastCommitDate == '') {
+            return 0;
+        }
+
         const currentDate = new Date();
         const commitDate = new Date(data.lastCommitDate);
 
@@ -99,7 +123,7 @@ export class metricCalc{
 
     getNetScoreLatency(latency: repoLatencyData): number 
     {
-        return parseFloat(Math.max(latency.numberOfLines, latency.openIssues, latency.closedIssues, latency.openIssues, latency.licenses, latency.numberOfCommits, latency.numberOfLines, latency.documentation).toFixed(3));
+        return parseFloat((Math.max(latency.numberOfLines, latency.openIssues, latency.closedIssues, latency.openIssues, latency.licenses, latency.numberOfCommits, latency.numberOfLines, latency.documentation) / 1000).toFixed(3));
     }
 
     getValue(data: repoData): metricData {
@@ -112,11 +136,11 @@ export class metricCalc{
             Correctness: this.calculateCorrectness(data),
             Correctness_Latency: this.getCorrectnessLatency(data.latency),
             BusFactor: this.calculateBusFactor(data),
-            BusFactor_Latency: parseFloat((data.latency.contributors).toFixed(3)),
+            BusFactor_Latency: parseFloat((data.latency.contributors / 1000).toFixed(3)),
             ResponsiveMaintainer: this.calculateResponsiveness(data),
-            ResponsiveMaintainer_Latency: parseFloat((data.latency.lastCommitDate).toFixed(3)),
+            ResponsiveMaintainer_Latency: parseFloat((data.latency.lastCommitDate / 1000).toFixed(3)),
             License: this.checkLicenseExistence(data),
-            License_Latency: parseFloat((data.latency.licenses).toFixed(3))
+            License_Latency: parseFloat((data.latency.licenses / 1000).toFixed(3))
         };
     }
 }
