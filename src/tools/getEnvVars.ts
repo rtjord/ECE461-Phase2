@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-export class envVars {
+export class getEnvVars {
     public logLevel: number;
     public logFilePath: string;
     public token: string;
