@@ -66,7 +66,7 @@ export class metricCalc{
         if(documentation.numLines > 300) doc_total += 0.1;
         if(documentation.hasExamples == true) doc_total += 0.1;
         if(documentation.hasDocumentation == true) doc_total += 0.14;
-        if(documentation.hasReadme == true) doc_total *= 1;
+        if(documentation.hasReadme == false) doc_total *= 0;
 
         const rampup = (numberOfLines > 500 ? 0.33 : 0) + (numberOfCommits > 1000 ? 0.33 : 0) + (doc_total);
         return parseFloat((rampup).toFixed(3));
