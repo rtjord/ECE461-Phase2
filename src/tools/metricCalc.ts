@@ -1,15 +1,6 @@
-//HOW DO I WRITE THIS IMPORT STATEMENT CORRECTLY???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-import { repoData } from '../utils/interfaces'; // Assuming the path is correct
+import { repoData } from '../utils/interfaces';
 import { metricData } from '../utils/interfaces';
 import { repoLatencyData } from '../utils/types';
-
-//***********************************************************************NOTES************************************************************************************ */
-//1. Figure out if its imported correctly
-//2. Figure out if the data is being passsed in correctly
-//3. Figure out variable name for the size of the ReadME
-//4. Test run this with fake data
-//5. Push updated script to Github
-//**************************************************************************************************************************************************************** */
 
 export class metricCalc{
 
@@ -21,10 +12,7 @@ export class metricCalc{
         if(numberOfOpenIssues/numberOfClosedIssues <= 0.5){
             correctness = 1;
         }
-        else if((1 - (numberOfOpenIssues / (numberOfClosedIssues))) < 0){
-            correctness = 0;
-        }
-        else if(numberOfClosedIssues == 0){
+        else if((1 - (numberOfOpenIssues / (numberOfClosedIssues))) < 0 || numberOfClosedIssues == 0){
             correctness = 0;
         }
         else{

@@ -87,9 +87,9 @@ export class npmAnalysis {
             } else {
                 this.logger.logDebug('No commits found in the repository.');
             }
-          } catch (err) {
+        } catch (err) {
             this.logger.logDebug(`Error retrieving the last commit in ${dir} for ${npmData.repoUrl}`);
-          }
+        }
     }
     
     private async deleteRepo(dir: string): Promise<void> {
@@ -276,34 +276,7 @@ export class gitAnalysis {
             this.logger.logDebug(`Error fetching number of contributors for ${gitData.repoUrl}`, error);
         }
     }
-
-    //retrieve data for liscense
-    /*
-    async fetchLicense(gitData: gitData): Promise<void> {
-        this.logger.logDebug('Fetching license...');
-        const approved_license = ['MIT License', 'BSD-3-Clause', 'Apache-2.0', 'LGPL-2.1'];
-        try {
-            // Fetch license information
-            const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/license`);
-            let license = response.data.license.name;
-            if (!approved_license.includes(license)) { //Checks if license content has approved licenses
-                const licenseContentEncoded = response.data.content; // Extract the license content (base64 encoded)
-                const licenseContent = Buffer.from(licenseContentEncoded, 'base64').toString('utf-8'); // Decode the base64 content
-                for (let element of approved_license) {
-                    if (licenseContent.includes(element)){
-                        license = element;
-                        break
-                    }
-                }
-            }
-            gitData.licenses = license;
-            this.logger.logDebug('License fetched successfully');
-        } catch (error) {
-            this.logger.logDebug(`Error fetching license for ${gitData.repoUrl}`, error);
-        }
-    }
-
-        */
+    
     async fetchLicense(gitData: gitData): Promise<void> {
         this.logger.logDebug('Fetching license...');
         try {

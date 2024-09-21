@@ -4,7 +4,7 @@
   "description": "<html lang=\"en\">\r <head>\r <meta charset=\"UTF-8\">\r <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r </head>",
   "main": "index.js",
   "scripts": {
-    "test": "jest ./src/testing/metric_calc.test.ts"
+    "test": "jest ./src/tests/metric_calc.test.ts"
   },
   "author": "Garrett Phillips, Ethan James, Riley Thomas, Nilayah Peter",
   "license": "ISC",
