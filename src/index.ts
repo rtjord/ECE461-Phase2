@@ -42,7 +42,7 @@ program
     .command('test')
     .description('Run tests')
     .action(() => {
-        exec('npx jest --coverage ./srcJS/tests/urlOps', (error, stdout, stderr) => {
+        exec('npx jest --coverage ./srcJS/tests/', (error, stdout, stderr) => {
             console.log(`Test output:\n${stderr}\n${stdout}\n${error}`);
             process.exit(0);
         });
