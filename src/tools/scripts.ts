@@ -20,8 +20,9 @@ export class runAnalysis {
     }
 
     async runAnalysis(urls: string[]): Promise<repoData[]> {
-        if (!this.gitAnalysis.isTokenValid()) {
-            this.logger.logInfo('No valid token provided');
+        const isTokenValid = await this.gitAnalysis.isTokenValid();
+        if (isTokenValid === false) {
+            process.stdout.write('No valid token provided');
             process.exit(1);
         }
         const start = performance.now();
