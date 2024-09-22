@@ -13,7 +13,7 @@ export class logger {
     private logFile: string;
 
     constructor(envVars: envVars) {
-        this.logLevel = envVars.logLevel;
+        this.logLevel = envVars.logLevel? envVars.logLevel : LogLevel.SILENT;
         this.ensureLogFileExists(envVars.logFilePath);
         this.logFile = envVars.logFilePath;
     }
@@ -55,11 +55,11 @@ export class logger {
     }
 
     private logMessage(level: LogLevel, message: string, error?: any) {
-        const isoString = new Date().toISOString();
-        const dateTime = isoString.slice(0, 19).replace('T', ' | '); // YYYY-MM-DD | HH:MM:SS
-        const logEntry = `${dateTime} - ${LogLevel[level]} - ${message}`;
+        const now = new Date();
+        const dateTime = now.toLocaleDateString() + ' | ' + now.toLocaleTimeString([], { hour12: false });
+        let logEntry = `${dateTime} - ${LogLevel[level]} - ${message}`;
         if (error) {
-            logEntry.concat(` - ${error}`);
+            logEntry+=`${error}`;
         }
         this.writeLog(logEntry);
         return;

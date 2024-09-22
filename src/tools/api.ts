@@ -20,10 +20,10 @@ export class npmAnalysis {
                 this.logger.logInfo(`Repository already exists in directory: ${dir}`);
                 return;
             } catch (err) {
-                this.logger.logDebug('Directory does not exist, proceeding to clone...');
+                this.logger.logDebug(`Directory does not exist in directory: ${dir}, proceeding to clone...`);
             }
 
-            this.logger.logInfo('Cloning repository...');
+            this.logger.logInfo(`Cloning repository in in directory: ${dir}...`);
             await git.clone({
                 fs,
                 http,
@@ -31,9 +31,9 @@ export class npmAnalysis {
                 url,
                 singleBranch: true,
             });
-            this.logger.logInfo('Repository cloned.');
+            this.logger.logInfo(`Repository ${url} cloned in directory ${dir}.`);
         } catch (err) {
-            this.logger.logDebug(`Error cloning repository for ${url} in ${dir} from cloneRepo`);
+            this.logger.logDebug(`Error cloning repository for ${url} in ${dir}.`);
         }
     }
 
@@ -53,14 +53,14 @@ export class npmAnalysis {
                 readmeContent = new TextDecoder().decode(readmeBlob.blob);
             } else {
                 // No README file found, try to fetch README from the package URL (if applicable)
-                this.logger.logInfo('No README file found in the repository tree. Trying to fetch via package URL...');
+                this.logger.logInfo(`No README file found in the repository tree of dir ${dir}. Trying to fetch via package URL...`);
                 const readmeUrl = `${npmData.repoUrl}#readme`; // Construct URL to fetch README
                 const response = await fetch(readmeUrl);
     
                 if (response.ok) {
                     readmeContent = await response.text();
                 } else {
-                    this.logger.logDebug(`Could not retrieve README from package URL ${readmeUrl}`);
+                    this.logger.logDebug(`Could not retrieve README from package URL ${readmeUrl} in ${dir}`);
                 }
             }
     
@@ -71,12 +71,12 @@ export class npmAnalysis {
                 npmData.documentation.hasDocumentation = /[Dd]ocumentation/i.test(readmeContent) || /[Dd]ocs/i.test(readmeContent);
             }
         } catch (err) {
-            this.logger.logDebug(`Error retrieving the README content for ${npmData.repoUrl} from getReadmeContent`);
+            this.logger.logDebug(`Error retrieving the README content for ${npmData.repoUrl} in ${dir}`);
         }
     } 
 
     async lastCommitDate(dir: string, npmData: npmData): Promise<void> {
-        this.logger.logDebug('Finding time since last commit...');
+        this.logger.logDebug(`Finding time since last commit in ${dir}...`);
         try {
             const commits = await git.log({ fs, dir, depth: 1 });
             const lastCommit = commits[0]; 
@@ -85,7 +85,7 @@ export class npmAnalysis {
               const lastCommitDate = new Date(lastCommit.commit.author.timestamp * 1000);
               npmData.lastCommitDate = lastCommitDate.toDateString();
             } else {
-                this.logger.logDebug('No commits found in the repository.');
+                this.logger.logDebug(`No commits found in the repository ${npmData.repoUrl} in dir ${dir}`);
             }
         } catch (err) {
             this.logger.logDebug(`Error retrieving the last commit in ${dir} for ${npmData.repoUrl} from lastCommitDate`);
@@ -93,10 +93,10 @@ export class npmAnalysis {
     }
     
     async deleteRepo(dir: string): Promise<void> {
-        this.logger.logDebug('Deleting repository...');
+        this.logger.logDebug(`Deleting repository ${dir}...`);
         try {
             await fs.rm(dir, { recursive: true, force: true });
-            this.logger.logDebug('Repository deleted');
+            this.logger.logDebug(`Repository in ${dir} deleted`);
         } catch (err) {
             this.logger.logDebug(`Failed to delete repository in ${dir}:`);
         }
@@ -111,8 +111,8 @@ export class npmAnalysis {
     
     // Main function to run the tasks in order
     async runTasks(url: string, dest: number): Promise<npmData> {
-        this.logger.logDebug('Running npm tasks...');
         const repoDir = './repoDir'+dest.toString();
+        this.logger.logDebug(`Running npm tasks in ${repoDir}...`);
         let npmData: npmData = {
             repoUrl: url,
             lastCommitDate: '',
@@ -143,7 +143,7 @@ export class npmAnalysis {
         ]);
         await this.deleteRepo(repoDir);
     
-        this.logger.logInfo('All npm tasks completed in order');
+        this.logger.logInfo(`All npm tasks completed in order within dir ${repoDir}`);
         return npmData;
     }
 }
@@ -187,7 +187,7 @@ export class gitAnalysis {
             this.logger.logInfo('Connection successful: status 200');
             return true;
         } catch (error) {
-            this.logger.logDebug('Connection failed', error);
+            this.logger.logDebug('Connection failed: ', error);
             return false;
         }
     }
@@ -195,7 +195,7 @@ export class gitAnalysis {
     async getOwnerAndRepo(gitData: gitData): Promise<void> {
         this.logger.logDebug('Fetching owner and repo name...');
         if (!gitData.repoUrl) {
-            this.logger.logInfo('Invalid URL');
+            this.logger.logInfo(`Invalid URL: ${gitData.repoUrl}`);
             return;
         }
 
@@ -209,19 +209,19 @@ export class gitAnalysis {
     }
 
     async fetchOpenIssues(gitData: gitData): Promise<void> {
-        this.logger.logDebug('Fetching open issues...');
+        this.logger.logDebug(`Fetching open issues for ${gitData.repoName}...`);
         try {
             const issues = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}`);
             gitData.numberOfOpenIssues = issues.data.open_issues_count;
-            this.logger.logDebug('Open Issues fetched successfully');
+            this.logger.logDebug(`Open Issues fetched successfully for ${gitData.repoName}`);
         } catch (error) {
-            this.logger.logDebug(`Error fetching open issues for ${gitData.repoUrl} from fetchOpenIssues`, error);
+            this.logger.logDebug(`Error fetching open issues for ${gitData.repoName}`, error);
         }
     }
 
     //retrieve data for closed issues
     async fetchClosedIssues(gitData: gitData): Promise<void> {
-        this.logger.logDebug('Fetching closed issues...');
+        this.logger.logDebug(`Fetching closed issues for ${gitData.repoName}...`);
         try {
             let page = 1;
             let totalClosedIssues = 0;
@@ -242,16 +242,16 @@ export class gitAnalysis {
                 page++;
             } while ((gitData.numberOfOpenIssues * 2) >= totalClosedIssues && issues.length > 0); // Continue until open issues is 1/2 of the closed issues or last closed issue
 
-            this.logger.logDebug('Closed Issues Count fetched successfully');
+            this.logger.logDebug(`Closed Issues Count fetched successfully for ${gitData.repoName}`);
             gitData.numberOfClosedIssues = totalClosedIssues;
         } catch (error) {
-            this.logger.logDebug(`Error fetching closed issues for ${gitData.repoUrl} from fetchClosedIssues`, error);
+            this.logger.logDebug(`Error fetching closed issues for ${gitData.repoName}`, error);
         }
     }
 
     //retrieve data for number of contributors
     async fetchContributors(gitData: gitData): Promise<void> {
-        this.logger.logDebug('Fetching contributors...');
+        this.logger.logDebug(`Fetching contributors for ${gitData.repoName}...`);
         try {
             // Initialize variables
             let page = 1;
@@ -274,17 +274,17 @@ export class gitAnalysis {
                 page++;
             }
 
-            this.logger.logDebug('Contributors Count fetched successfully');
+            this.logger.logDebug(`Contributors Count fetched successfully for ${gitData.repoName}`);
             gitData.numberOfContributors = contributorsCount;
         } catch (error) {
-            this.logger.logDebug(`Error fetching number of contributors for ${gitData.repoUrl} from fetchContributors`, error);
+            this.logger.logDebug(`Error fetching number of contributors for ${gitData.repoName}`, error);
         }
     }
     
     async fetchLicense(gitData: gitData): Promise<void> {
-        this.logger.logDebug('Fetching license...');
+        this.logger.logDebug(`Fetching license for ${gitData.repoName}...`);
         try {
-            this.logger.logDebug('Fetching package.json to find the license...');
+            this.logger.logDebug(`Fetching package.json wihtin ${gitData.repoName} to find the license...`);
             const packageJsonResponse = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/contents/package.json`);
             const packageJsonContentEncoded = packageJsonResponse.data.content;
             const packageJsonContent = Buffer.from(packageJsonContentEncoded, 'base64').toString('utf-8');
@@ -292,7 +292,7 @@ export class gitAnalysis {
 
             if (packageJson.license) {
                 gitData.licenses = packageJson.license;
-                this.logger.logDebug('License found in package.json');
+                this.logger.logDebug(`License found in package.json for ${gitData.repoName}`);
             }
         } catch (packageJsonError) {
             this.logger.logDebug(`Error fetching package.json for ${gitData.repoUrl}: ${packageJsonError} from fetchLicense`);
@@ -301,7 +301,7 @@ export class gitAnalysis {
 
     //retrieve data for number of commits
     async fetchCommits(gitData: gitData): Promise<void> {
-        this.logger.logDebug('Fetching commits...');
+        this.logger.logDebug(`Fetching commits for ${gitData.repoName}...`);
         try {
             // Initialize count
             let totalCommits = 0;
@@ -324,15 +324,15 @@ export class gitAnalysis {
                 page++;
             }
             gitData.numberOfCommits = totalCommits;
-            this.logger.logDebug('Commits Count fetched successfully');
+            this.logger.logDebug(`Commits Count fetched successfully for ${gitData.repoName}`);
         } catch (error) {
-            this.logger.logDebug(`Error fetching number of commits for ${gitData.repoUrl} from fetchCommits`, error);
+            this.logger.logDebug(`Error fetching number of commits for ${gitData.repoName}`, error);
         }
     }
 
     //retrieve total number of lines
     async fetchLines(gitData: gitData): Promise<void> {
-        this.logger.logDebug('Fetching lines of code...');
+        this.logger.logDebug(`Fetching lines of code for ${gitData.repoName}...`);
 
         // Helper for determining if it's a file or directory
         const processDirorFile = async (file: any): Promise<number> => {
@@ -345,7 +345,7 @@ export class gitAnalysis {
                     }
                     return result;
                 } catch (error) {
-                    this.logger.logDebug('Error fetching file content: ', error);
+                    this.logger.logDebug(`Error fetching file content for ${gitData.repoName}: `, error);
                     return result;
                 }
             } else if (file.type === "dir") {
@@ -359,7 +359,7 @@ export class gitAnalysis {
                     result += fileLines.reduce((sum, value) => sum + value, 0);
                     return result;
                 } catch (error) {
-                    this.logger.logDebug('Error fetching directory contents:', error);
+                    this.logger.logDebug(`Error fetching directory contents for ${gitData.repoName}:`, error);
                     return result;
                 }
             }
@@ -382,9 +382,9 @@ export class gitAnalysis {
             // Sum up all the lines of code
             totalLines = fileLines.reduce((sum, value) => sum + value, 0);
             gitData.numberOfLines = totalLines;
-            this.logger.logDebug('Lines of code fetched successfully');
+            this.logger.logDebug(`Lines of code fetched successfully for ${gitData.repoName}`);
         } catch (error) {
-            this.logger.logDebug(`Error fetching number of lines for ${gitData.repoUrl} from processDirorFile`, error);
+            this.logger.logDebug(`Error fetching number of lines for ${gitData.repoName}`, error);
         }
     }
 
@@ -395,8 +395,7 @@ export class gitAnalysis {
         return endTime - startTime;
     }
 
-    async runTasks(url: string): Promise<gitData> {
-        this.logger.logDebug('Running git tasks...');
+    async runTasks(url: string): Promise<gitData> { 
         let gitData: gitData = {
             repoName: '',
             repoUrl: url,
@@ -419,6 +418,8 @@ export class gitAnalysis {
             }
         };
 
+        this.logger.logDebug(`Running git tasks for ${gitData.repoUrl}...`);
+
         if (await this.checkConnection(url)) {
             await this.getOwnerAndRepo(gitData);
             [ gitData.latency.contributors,
@@ -436,7 +437,7 @@ export class gitAnalysis {
                 this.executeTasks(this.fetchLines.bind(this), gitData)
             ]);
 
-            this.logger.logInfo('All git tasks completed in order');
+            this.logger.logInfo(`All git tasks completed in order for ${gitData.repoUrl}`);
             return gitData;
         }
         this.logger.logDebug(`No git tasks completed. Invalid URL: ${url}`);

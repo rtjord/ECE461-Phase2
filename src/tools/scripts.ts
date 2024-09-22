@@ -29,7 +29,7 @@ export class runAnalysis {
         const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index));
         const repoDataArr = await Promise.all(repoDataPromises);
         const end = performance.now();
-        this.logger.logInfo(`Total time taken: ${end - start}ms`);
+        this.logger.logInfo(`Total time taken: ${parseFloat(((end - start) / 1000).toFixed(3))} s`);
         return repoDataArr;
     }
 
