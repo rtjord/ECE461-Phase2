@@ -1,0 +1,49 @@
+9/22/2024 | 15:54:59 - INFO - Token is valid: true
+9/22/2024 | 15:54:59 - INFO - Cloning repository...
+9/22/2024 | 15:55:00 - INFO - Connection successful: status 200
+9/22/2024 | 15:55:16 - INFO - Repository https://github.com/expressjs/express cloned in directory ./repoDir0.
+9/22/2024 | 15:55:16 - INFO - All git tasks completed in order for https://github.com/expressjs/express
+9/22/2024 | 15:55:17 - INFO - All npm tasks completed in order within dir ./repoDir0
+9/22/2024 | 15:55:17 - INFO - Total time taken: 17.448 s
+9/22/2024 | 15:55:55 - INFO - Token is valid: true
+9/22/2024 | 15:55:55 - INFO - Cloning repository...
+9/22/2024 | 15:55:55 - INFO - Cloning repository...
+9/22/2024 | 15:55:55 - INFO - Cloning repository...
+9/22/2024 | 15:55:55 - INFO - Cloning repository...
+9/22/2024 | 15:55:55 - INFO - Cloning repository...
+9/22/2024 | 15:55:56 - INFO - Connection successful: status 200
+9/22/2024 | 15:55:56 - INFO - Connection successful: status 200
+9/22/2024 | 15:55:59 - INFO - Connection successful: status 200
+9/22/2024 | 15:55:59 - INFO - Connection successful: status 200
+9/22/2024 | 15:55:59 - INFO - Connection successful: status 200
+9/22/2024 | 15:56:05 - INFO - All git tasks completed in order for https://github.com/nullivex/nodist
+9/22/2024 | 15:56:06 - INFO - All git tasks completed in order for https://github.com/cloudinary/cloudinary_npm
+9/22/2024 | 15:56:13 - INFO - All git tasks completed in order for https://github.com/browserify/browserify
+9/22/2024 | 15:56:15 - INFO - Repository https://github.com/nullivex/nodist cloned in directory ./repoDir2.
+9/22/2024 | 15:56:15 - INFO - All npm tasks completed in order within dir ./repoDir2
+9/22/2024 | 15:56:18 - INFO - Repository https://github.com/browserify/browserify cloned in directory ./repoDir4.
+9/22/2024 | 15:56:18 - INFO - No README file found in the repository tree. Trying to fetch via package URL...
+9/22/2024 | 15:56:19 - INFO - All npm tasks completed in order within dir ./repoDir4
+9/22/2024 | 15:56:23 - INFO - All git tasks completed in order for https://github.com/expressjs/express
+9/22/2024 | 15:56:26 - INFO - Repository https://github.com/cloudinary/cloudinary_npm cloned in directory ./repoDir0.
+9/22/2024 | 15:56:27 - INFO - All npm tasks completed in order within dir ./repoDir0
+9/22/2024 | 15:56:30 - INFO - All git tasks completed in order for https://github.com/lodash/lodash
+9/22/2024 | 15:56:42 - INFO - Repository https://github.com/expressjs/express cloned in directory ./repoDir1.
+9/22/2024 | 15:56:42 - INFO - All npm tasks completed in order within dir ./repoDir1
+9/22/2024 | 15:57:04 - INFO - Repository https://github.com/lodash/lodash cloned in directory ./repoDir3.
+9/22/2024 | 15:57:05 - INFO - All npm tasks completed in order within dir ./repoDir3
+9/22/2024 | 15:57:05 - INFO - Total time taken: 70.064 s
+9/22/2024 | 15:59:31 - INFO - Token is valid: true
+9/22/2024 | 15:59:39 - INFO - Token is valid: true
+9/22/2024 | 15:59:39 - INFO - Token is valid: true
+9/22/2024 | 15:59:39 - INFO - Cloning repository...
+9/22/2024 | 15:59:39 - INFO - Connection successful: status 200
+9/22/2024 | 15:59:39 - INFO - Connection successful: status 200
+9/22/2024 | 15:59:40 - INFO - Repository https://github.com/phillips302/ECE461 cloned in directory ./repoDir0.
+9/22/2024 | 15:59:40 - INFO - All npm tasks completed in order within dir ./repoDir0
+9/22/2024 | 15:59:40 - INFO - All git tasks completed in order for https://github.com/phillips302/ECE461
+9/22/2024 | 15:59:40 - INFO - Total time taken: 1.025 s
+9/22/2024 | 15:59:40 - INFO - Token is valid: true
+9/22/2024 | 15:59:40 - INFO - Total time taken: 0.001 s
+9/22/2024 | 15:59:42 - INFO - Connection successful: status 200
+9/22/2024 | 15:59:43 - INFO - All git tasks completed in order for https://github.com/phillips302/ECE461
