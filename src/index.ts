@@ -26,7 +26,8 @@ program
         for (const repo of repoData) {
             const metricCalcClass = new metricCalc();
             const result = metricCalcClass.getValue(repo);
-            console.log(JSON.stringify(result).replace(/,/g, ', '));
+            process.stdout.write(JSON.stringify(result).replace(/,/g, ', '));
+            process.stdout.write('\n');
         }
         process.exit(0);
     });
@@ -35,34 +36,40 @@ program
     .command('test')
     .description('Run tests')
     .action(() => {
-        exec('npx jest --coverage ./srcJS/tests/', (error, stdout, stderr) => {
-            let totalTests = '0';
-            let passedTests = '0';
-            let coverage = '0';
-
-            (stdout.split('\n')).forEach(element => {
-                if (element.includes("All files")){
-                    let coverageArray = element.split('|');
-                    coverage = parseInt(coverageArray[coverageArray.length - 2]).toString().trim();
-                }
-            });
-
-            stderr.split('\n').forEach(element => {
-                if (element.includes("Tests:")){
-                    let testMatches = element.match(/(\d+) passed, (\d+) total/);
-                    if(testMatches) {
-                        passedTests = testMatches[1];
-                        totalTests = testMatches[2];
+        try {
+            exec('npx jest --coverage ./srcJS/tests/', (error, stdout, stderr) => {
+                let totalTests = '0';
+                let passedTests = '0';
+                let coverage = '0';
+    
+                (stdout.split('\n')).forEach(element => {
+                    if (element.includes("All files")){
+                        let coverageArray = element.split('|');
+                        coverage = parseInt(coverageArray[coverageArray.length - 2]).toString().trim();
                     }
-                }
-            });
+                });
+    
+                stderr.split('\n').forEach(element => {
+                    if (element.includes("Tests:")){
+                        let testMatches = element.match(/(\d+) passed, (\d+) total/);
+                        if(testMatches) {
+                            passedTests = testMatches[1];
+                            totalTests = testMatches[2];
+                        }
+                    }
+                });
 
-            // Format and display the final output in the desired structure
-            console.log(`Total: ${totalTests}`);
-            console.log(`Passed: ${passedTests}`);
-            console.log(`Coverage: ${coverage}%`);
-            console.log(`${passedTests}/${totalTests} test cases passed. ${coverage}% line coverage achieved.`);
-        });
+                process.stdout.write(`Total: ${totalTests}\n`);
+                process.stdout.write(`Passed: ${passedTests}\n`);
+                process.stdout.write(`Coverage: ${coverage}%\n`);
+                process.stdout.write(`${passedTests}/${totalTests} test cases passed. ${coverage}% line coverage achieved.\n`);
+                process.exit(0);
+            });
+        } catch (error) {
+            process.stderr.write('Tests failed to run.\n');
+            process.exit(1);
+        }
+
     });
 
 program.parse(process.argv);

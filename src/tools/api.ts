@@ -353,7 +353,7 @@ export class gitAnalysis {
                     result += fileLines.reduce((sum, value) => sum + value, 0);
                     return result;
                 } catch (error) {
-                    console.error('Error fetching directory contents:', error);
+                    this.logger.logDebug('Error fetching directory contents:', error);
                     return result;
                 }
             }

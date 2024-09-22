@@ -99,7 +99,7 @@ export class metricCalc{
         const monthsDifference = Math.max(totalMonthsDifference, 0);
         const score = Math.max(0, 1 - (monthsDifference / 12));
         
-        return score;
+        return parseFloat(score.toFixed(3));
     }
 
     checkLicenseExistence(data: repoData): number 
