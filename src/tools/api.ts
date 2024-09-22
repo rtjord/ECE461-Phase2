@@ -159,7 +159,7 @@ export class gitAnalysis {
         this.token = envVars.token;
         this.axiosInstance = axios.create({
             baseURL: 'https://api.github.com',
-            timeout: 5000,
+            timeout: 8000,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/vnd.github.v3+json',
@@ -170,8 +170,12 @@ export class gitAnalysis {
 
     async isTokenValid(): Promise<boolean> {
         let isValid = false;
-        const response = await this.axiosInstance.get('https://github.com/phillips302/ECE461');
-        response.status === 200 ? isValid = true : isValid = false;
+        try {
+            const response = await this.axiosInstance.get('https://api.github.com/user');
+            isValid = response.status === 200;
+        } catch (error) {
+            isValid = false;
+        }
         this.logger.logInfo(`Token is valid: ${isValid}`);
         return isValid;
     }
