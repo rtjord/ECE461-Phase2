@@ -72,20 +72,35 @@ describe('urlAnalysis', () => {
             expect(mockLogger.logDebug).toHaveBeenCalledWith('Invalid npm package URL');
         });
     });
-/*
+
     describe('getRepositoryUrl', () => {
-        it('should return the repository URL for a valid npm package URL', async () => {
+        it('should return the cleaned repository URL from the NPM registry', async () => {
             const mockUrl = 'https://www.npmjs.com/package/express';
+            const mockResponse = JSON.stringify({
+                repository: { url: 'git+https://github.com/expressjs/express.git' }
+            });
+    
+            // Mock the https.get call
+            (https.get as jest.Mock).mockImplementation((url, callback) => {
+                const res = {
+                    on: jest.fn().mockImplementation((event, handler) => {
+                        if (event === 'data') {
+                            handler(mockResponse); // Provide mock response data
+                        }
+                        if (event === 'end') {
+                            handler(); // End event
+                        }
+                    })
+                } as any;
+                callback(res);
+                return { on: jest.fn() }; // Simulate request.on('error')
+            });
+    
+            const analysis = new urlAnalysis({} as any);
             const result = await analysis.getRepositoryUrl(mockUrl);
             expect(result).toBe('https://github.com/expressjs/express');
         });
-
-        it('should return null if no repository URL is found', async () => {
-            const mockUrl = 'https://www.npmjs.com/package/blahblahfakepackage';
-            const result = await analysis.getRepositoryUrl(mockUrl);
-            expect(result).toBe(null);
-        })
-    })*/
+    });
 });
 /*
 describe('parseURLsToArray', () => {
