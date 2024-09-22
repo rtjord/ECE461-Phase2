@@ -46,7 +46,7 @@ describe('npmAnalysis', () => {
                 url: 'https://example.com/repo.git',
                 singleBranch: true,
             });
-            expect(mockLogger.logInfo).toHaveBeenCalledWith('Repository cloned.');
+            expect(mockLogger.logInfo).toHaveBeenCalledWith(`Repository https://example.com/repo.git cloned in directory ./repo.`);
         });
     });
 
@@ -138,7 +138,7 @@ describe('npmAnalysis', () => {
 
             await analysis.lastCommitDate('./repo', mockNpmData);
 
-            expect(mockLogger.logDebug).toHaveBeenCalledWith('No commits found in the repository.');
+            expect(mockLogger.logDebug).toHaveBeenCalledWith(`No commits found in the repository ${mockNpmData.repoUrl} in dir ./repo`);
         });
     });
 
@@ -149,7 +149,7 @@ describe('npmAnalysis', () => {
             await analysis.deleteRepo('./repo');
 
             expect(fs.rm).toHaveBeenCalledWith('./repo', { recursive: true, force: true });
-            expect(mockLogger.logDebug).toHaveBeenCalledWith('Repository deleted');
+            expect(mockLogger.logDebug).toHaveBeenCalledWith('Repository in ./repo deleted');
         });
 
         it('should log debug message if deletion fails', async () => {
