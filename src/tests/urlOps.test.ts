@@ -1,7 +1,5 @@
-import { urlAnalysis, parseURLsToArray } from '../tools/urlOps';
-import * as fs from 'fs';
+import { urlAnalysis } from '../tools/urlOps';
 import * as https from 'https';
-import { IncomingMessage } from 'http';
 import { logger } from '../tools/logging';
 import { envVars } from '../utils/interfaces';
 
@@ -102,37 +100,3 @@ describe('urlAnalysis', () => {
         });
     });
 });
-/*
-describe('parseURLsToArray', () => {
-    let mockReadable: any;
-  
-    beforeEach(() => {
-      // Create a mock readable stream
-      const mockData = 'https://example.com\nhttps://another.com\n';
-      mockReadable = new (require('stream').Readable)({
-        read() {
-          this.push(mockData);  // Push the mock data
-          this.push(null);      // End of stream
-        },
-      });
-  
-      // Mock fs.createReadStream to return the mock readable stream
-      jest.spyOn(fs, 'createReadStream').mockReturnValue(mockReadable as any);
-    });
-  
-    afterEach(() => {
-      // Restore the mocked fs.createReadStream after each test
-      (fs.createReadStream as jest.Mock).mockRestore();
-    });
-  
-    it('should parse URLs from the file and return an array', async () => {
-      // Call the function with a mock file path
-      const result = await parseURLsToArray('mockFilePath.txt');
-      const expectedArray = ['https://example.com', 'https://another.com'];
-  
-      // Assert that the result matches the expected array
-      expect(result).toEqual(expectedArray);
-      expect(fs.createReadStream).toHaveBeenCalledWith('mockFilePath.txt');  // Check that the mock was called
-    });
-  });
-*/

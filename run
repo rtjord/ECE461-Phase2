@@ -5,9 +5,9 @@ if [ "$1" = "install" ]; then
     npm install
     tsc
     exit 0
-elif [ "$1" = "test" ] || [ -f "$1" ]; then
+elif [ "$1" = "test" ] || [ -f "$1" ]; then #if it's test or a url file then pass it to index
     node ./srcJS/index.js "$@"
-else
+else #if it doesn't match any of these then error
     echo "Invalid argument. Please use 'install', 'test', or the name of a valid URL_FILE."
     exit 1
 fi

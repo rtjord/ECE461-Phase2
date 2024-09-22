@@ -20,10 +20,10 @@ export class npmAnalysis {
                 this.logger.logInfo(`Repository already exists in directory: ${dir}`);
                 return;
             } catch (err) {
-                this.logger.logDebug(`Directory does not exist in directory: ${dir}, proceeding to clone...`);
+                this.logger.logDebug(`Directory does not exist, proceeding to clone...`);
             }
 
-            this.logger.logInfo(`Cloning repository in in directory: ${dir}...`);
+            this.logger.logInfo(`Cloning repository...`);
             await git.clone({
                 fs,
                 http,
@@ -53,7 +53,7 @@ export class npmAnalysis {
                 readmeContent = new TextDecoder().decode(readmeBlob.blob);
             } else {
                 // No README file found, try to fetch README from the package URL (if applicable)
-                this.logger.logInfo(`No README file found in the repository tree of dir ${dir}. Trying to fetch via package URL...`);
+                this.logger.logInfo(`No README file found in the repository tree. Trying to fetch via package URL...`);
                 const readmeUrl = `${npmData.repoUrl}#readme`; // Construct URL to fetch README
                 const response = await fetch(readmeUrl);
     
@@ -76,7 +76,7 @@ export class npmAnalysis {
     } 
 
     async lastCommitDate(dir: string, npmData: npmData): Promise<void> {
-        this.logger.logDebug(`Finding time since last commit in ${dir}...`);
+        this.logger.logDebug(`Finding time since last commit...`);
         try {
             const commits = await git.log({ fs, dir, depth: 1 });
             const lastCommit = commits[0]; 
@@ -111,7 +111,7 @@ export class npmAnalysis {
     
     // Main function to run the tasks in order
     async runTasks(url: string, dest: number): Promise<npmData> {
-        const repoDir = './repoDir'+dest.toString();
+        const repoDir = './srcJS/repoDir'+dest.toString();
         this.logger.logDebug(`Running npm tasks in ${repoDir}...`);
         let npmData: npmData = {
             repoUrl: url,
@@ -159,7 +159,7 @@ export class gitAnalysis {
         this.token = envVars.token;
         this.axiosInstance = axios.create({
             baseURL: 'https://api.github.com',
-            timeout: 8000,
+            timeout: 5000,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/vnd.github.v3+json',

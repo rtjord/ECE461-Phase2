@@ -1,6 +1,5 @@
 ## Sensitive Files ##
 files/
-keys.env
 *.env
 
 ## Package Files ##
