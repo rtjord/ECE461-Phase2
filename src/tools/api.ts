@@ -111,7 +111,7 @@ export class npmAnalysis {
     
     // Main function to run the tasks in order
     async runTasks(url: string, dest: number): Promise<npmData> {
-        const repoDir = './repoDir'+dest.toString();
+        const repoDir = './srcJS/repoDir'+dest.toString();
         this.logger.logDebug(`Running npm tasks in ${repoDir}...`);
         let npmData: npmData = {
             repoUrl: url,
@@ -159,7 +159,7 @@ export class gitAnalysis {
         this.token = envVars.token;
         this.axiosInstance = axios.create({
             baseURL: 'https://api.github.com',
-            timeout: 8000,
+            timeout: 5000,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/vnd.github.v3+json',

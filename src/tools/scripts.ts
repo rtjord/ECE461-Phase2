@@ -18,7 +18,7 @@ export class runAnalysis {
         this.gitAnalysis = new gitAnalysis(envVars);
         this.urlAnalysis = new urlAnalysis(envVars);
     }
-
+/*
     async runAnalysis(urls: string[]): Promise<repoData[]> {
         const isTokenValid = await this.gitAnalysis.isTokenValid();
         if (isTokenValid === false) {
@@ -26,8 +26,24 @@ export class runAnalysis {
             process.exit(1);
         }
         const start = performance.now();
-        const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index));
+        const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index), { concurrency: 10 });
         const repoDataArr = await Promise.all(repoDataPromises);
+        const end = performance.now();
+        this.logger.logInfo(`Total time taken: ${parseFloat(((end - start) / 1000).toFixed(3))} s`);
+        return repoDataArr;
+    }
+*/
+    async runAnalysis(urls: string[]): Promise<repoData[]> {
+        const isTokenValid = await this.gitAnalysis.isTokenValid();
+        if (!isTokenValid) {
+            process.stdout.write('No valid token provided\n');
+            process.exit(1);
+        }
+
+        const start = performance.now();
+        const Promise = require('bluebird');
+        const repoDataArr = await Promise.map(urls, async (url: string, index: number) => this.evaluateMods(url, index), { concurrency: 3 });
+        //const repoDataArr = await Promise.all(repoDataPromises);
         const end = performance.now();
         this.logger.logInfo(`Total time taken: ${parseFloat(((end - start) / 1000).toFixed(3))} s`);
         return repoDataArr;
