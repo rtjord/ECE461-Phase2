@@ -88,7 +88,7 @@ export class npmAnalysis {
                 this.logger.logDebug(`No commits found in the repository ${npmData.repoUrl} in dir ${dir}`);
             }
         } catch (err) {
-            this.logger.logDebug(`Error retrieving the last commit in ${dir} for ${npmData.repoUrl}`);
+            this.logger.logDebug(`Error retrieving the last commit in ${dir} for ${npmData.repoUrl} from lastCommitDate`);
         }
     }
     
@@ -295,7 +295,7 @@ export class gitAnalysis {
                 this.logger.logDebug(`License found in package.json for ${gitData.repoName}`);
             }
         } catch (packageJsonError) {
-            this.logger.logDebug(`Error fetching package.json for ${gitData.repoName}: ${packageJsonError}`);
+            this.logger.logDebug(`Error fetching package.json for ${gitData.repoUrl}: ${packageJsonError} from fetchLicense`);
         }
     }
 
