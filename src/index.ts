@@ -3,6 +3,7 @@ import { exec } from 'child_process';
 import { getEnvVars } from './tools/getEnvVars';
 import { envVars } from './utils/interfaces';
 import { runAnalysis } from './tools/scripts';
+import { gitAnalysis } from './tools/api'
 import { parseURLsToArray } from './tools/urlOps';
 import { repoData } from './utils/interfaces';
 import { metricCalc } from './tools/metricCalc';
@@ -40,7 +41,15 @@ program
 program
     .command('test')
     .description('Run tests')
-    .action(() => {
+    .action(async () => {
+        const envVar: envVars = new getEnvVars();
+        const gitAnalysisClass = new gitAnalysis(envVar);
+        const isTokenValid = await gitAnalysisClass.isTokenValid()
+        if (isTokenValid === false) {
+            process.stdout.write('No valid token provided\n');
+            process.exit(1);
+        }
+
         try {
             exec('npx jest --coverage ./srcJS/tests/', (error, stdout, stderr) => {
                 let totalTests = '0';
