@@ -4,11 +4,10 @@
 if [ "$1" = "install" ]; then
     npm install
     tsc
+    exit 0
 elif [ "$1" = "test" ] || [ -f "$1" ]; then
     node ./srcJS/index.js "$@"
 else
     echo "Invalid argument. Please use 'install', 'test', or the name of a valid URL_FILE."
     exit 1
 fi
-
-exit 0

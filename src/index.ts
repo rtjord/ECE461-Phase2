@@ -21,15 +21,20 @@ program
         const envVar: envVars = new getEnvVars();
         const urlList: string[] = await parseURLsToArray(urlFile);
         const runAnalysisClass = new runAnalysis(envVar);
-        const repoData = await runAnalysisClass.runAnalysis(urlList);
-        
-        for (const repo of repoData) {
-            const metricCalcClass = new metricCalc();
-            const result = metricCalcClass.getValue(repo);
-            process.stdout.write(JSON.stringify(result).replace(/,/g, ', '));
-            process.stdout.write('\n');
+        try {
+            const repoData: repoData[] = await runAnalysisClass.runAnalysis(urlList);
+            
+            for (const repo of repoData) {
+                const metricCalcClass = new metricCalc();
+                const result = metricCalcClass.getValue(repo);
+                process.stdout.write(JSON.stringify(result).replace(/,/g, ', '));
+                process.stdout.write('\n');
+            }
+            process.exit(0);
+        } catch(error) {
+            process.stdout.write(`Could not execute url analysis of modules: ${error}`);
+            process.exit(1);
         }
-        process.exit(0);
     });
 
 program
@@ -66,10 +71,9 @@ program
                 process.exit(0);
             });
         } catch (error) {
-            process.stderr.write('Tests failed to run.\n');
+            process.stderr.write(`Tests failed to run: ${error}\n`);
             process.exit(1);
         }
-
     });
 
 program.parse(process.argv);
