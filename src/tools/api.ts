@@ -340,7 +340,9 @@ export class gitAnalysis {
             if (file.type === 'file') {
                 try {
                     const fileResponse = await this.axiosInstance.get(file.download_url);
-                    result += fileResponse.data.split('\n').length;
+                    if (typeof fileResponse.data === 'string'){
+                        result += fileResponse.data.split('\n').length;
+                    }
                     return result;
                 } catch (error) {
                     this.logger.logDebug('Error fetching file content: ', error);
