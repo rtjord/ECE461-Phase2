@@ -9,12 +9,14 @@ export class getEnvVars {
         dotenv.config({ path: '../.env' });
         const token = process.env.GITHUB_TOKEN;
         if (token === undefined) {
+            process.stderr.write(`GITHUB_TOKEN is undefined\n`);
             process.exit(1);
         }
         this.token = token;
         this.logLevel = Number(process.env.LOG_LEVEL);
         const logFilePath = process.env.LOG_FILE;
         if (logFilePath === undefined) {
+            process.stderr.write(`LOG_FILE path is undefined\n`);
             process.exit(1);
         }
         this.logFilePath = logFilePath;
