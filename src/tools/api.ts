@@ -33,7 +33,7 @@ export class npmAnalysis {
             });
             this.logger.logInfo('Repository cloned.');
         } catch (err) {
-            this.logger.logDebug(`Error cloning repository for ${url} in ${dir}`);
+            this.logger.logDebug(`Error cloning repository for ${url} in ${dir} from cloneRepo`);
         }
     }
 
@@ -71,7 +71,7 @@ export class npmAnalysis {
                 npmData.documentation.hasDocumentation = /[Dd]ocumentation/i.test(readmeContent) || /[Dd]ocs/i.test(readmeContent);
             }
         } catch (err) {
-            this.logger.logDebug(`Error retrieving the README content for ${npmData.repoUrl}`);
+            this.logger.logDebug(`Error retrieving the README content for ${npmData.repoUrl} from getReadmeContent`);
         }
     } 
 
@@ -88,7 +88,7 @@ export class npmAnalysis {
                 this.logger.logDebug('No commits found in the repository.');
             }
         } catch (err) {
-            this.logger.logDebug(`Error retrieving the last commit in ${dir} for ${npmData.repoUrl}`);
+            this.logger.logDebug(`Error retrieving the last commit in ${dir} for ${npmData.repoUrl} from lastCommitDate`);
         }
     }
     
@@ -215,7 +215,7 @@ export class gitAnalysis {
             gitData.numberOfOpenIssues = issues.data.open_issues_count;
             this.logger.logDebug('Open Issues fetched successfully');
         } catch (error) {
-            this.logger.logDebug(`Error fetching open issues for ${gitData.repoUrl}`, error);
+            this.logger.logDebug(`Error fetching open issues for ${gitData.repoUrl} from fetchOpenIssues`, error);
         }
     }
 
@@ -245,7 +245,7 @@ export class gitAnalysis {
             this.logger.logDebug('Closed Issues Count fetched successfully');
             gitData.numberOfClosedIssues = totalClosedIssues;
         } catch (error) {
-            this.logger.logDebug(`Error fetching closed issues for ${gitData.repoUrl}`, error);
+            this.logger.logDebug(`Error fetching closed issues for ${gitData.repoUrl} from fetchClosedIssues`, error);
         }
     }
 
@@ -277,7 +277,7 @@ export class gitAnalysis {
             this.logger.logDebug('Contributors Count fetched successfully');
             gitData.numberOfContributors = contributorsCount;
         } catch (error) {
-            this.logger.logDebug(`Error fetching number of contributors for ${gitData.repoUrl}`, error);
+            this.logger.logDebug(`Error fetching number of contributors for ${gitData.repoUrl} from fetchContributors`, error);
         }
     }
     
@@ -295,7 +295,7 @@ export class gitAnalysis {
                 this.logger.logDebug('License found in package.json');
             }
         } catch (packageJsonError) {
-            this.logger.logDebug(`Error fetching package.json for ${gitData.repoUrl}: ${packageJsonError}`);
+            this.logger.logDebug(`Error fetching package.json for ${gitData.repoUrl}: ${packageJsonError} from fetchLicense`);
         }
     }
 
@@ -326,7 +326,7 @@ export class gitAnalysis {
             gitData.numberOfCommits = totalCommits;
             this.logger.logDebug('Commits Count fetched successfully');
         } catch (error) {
-            this.logger.logDebug(`Error fetching number of commits for ${gitData.repoUrl}`, error);
+            this.logger.logDebug(`Error fetching number of commits for ${gitData.repoUrl} from fetchCommits`, error);
         }
     }
 
@@ -384,7 +384,7 @@ export class gitAnalysis {
             gitData.numberOfLines = totalLines;
             this.logger.logDebug('Lines of code fetched successfully');
         } catch (error) {
-            this.logger.logDebug(`Error fetching number of lines for ${gitData.repoUrl}`, error);
+            this.logger.logDebug(`Error fetching number of lines for ${gitData.repoUrl} from processDirorFile`, error);
         }
     }
 
