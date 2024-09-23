@@ -234,12 +234,10 @@ export class gitAnalysis {
             } catch (error) {
                 retryCount++;
                 if (retryCount > maxRetries) {
-                    throw new Error(`Max retries exceeded`);
+                    this.logger.logDebug(`Max retries exceeded`);
                 }
-    
-                // Log the retry attempt and error
+
                 this.logger.logDebug(`Retry ${retryCount}/${maxRetries} after error: ${error}`);
-    
                 // Wait for the delay before retrying
                 await new Promise(resolve => setTimeout(resolve, delay));
                 delay *= 2;  // Exponential backoff: double the delay
@@ -250,36 +248,6 @@ export class gitAnalysis {
     }
     
     //retrieve data for closed issues
-/*
-    async fetchClosedIssues(gitData: gitData): Promise<void> {
-        this.logger.logDebug(`Fetching closed issues for ${gitData.repoName}...`);
-        try {
-            let page = 1;
-            let totalClosedIssues = 0;
-            let issues;
-
-            do {
-                // Fetch a page of closed issues
-                const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/issues`, {
-                    params: {
-                        state: 'closed',
-                        per_page: 100,   // Max per page
-                        page: page
-                    }
-                });
-
-                issues = response.data;
-                totalClosedIssues += issues.length;
-                page++;
-            } while ((gitData.numberOfOpenIssues * 2) >= totalClosedIssues && issues.length > 0); // Continue until open issues is 1/2 of the closed issues or last closed issue
-
-            this.logger.logDebug(`Closed Issues Count fetched successfully for ${gitData.repoName}`);
-            gitData.numberOfClosedIssues = totalClosedIssues;
-        } catch (error) {
-            this.logger.logDebug(`Error fetching closed issues for ${gitData.repoName}`, error);
-        }
-    }
-*/
     async fetchClosedIssues(gitData: gitData): Promise<void> {
         this.logger.logDebug(`Fetching closed issues for ${gitData.repoName}...`);
 
@@ -315,40 +283,7 @@ export class gitAnalysis {
         }
     }
 
-
     //retrieve data for number of contributors
-    /*
-    async fetchContributors(gitData: gitData): Promise<void> {
-        this.logger.logDebug(`Fetching contributors for ${gitData.repoName}...`);
-        try {
-            // Initialize variables
-            let page = 1;
-            let contributorsCount = 0;
-            let hasMorePages = true;
-
-            // Fetch contributors with pagination
-            while (hasMorePages) {
-                const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/contributors`, {
-                    params: {
-                        per_page: 100,  // Fetch up to 100 contributors per page
-                        page: page
-                    }
-                });
-
-                // Update count and check for more pages
-                contributorsCount += response.data.length;
-                const linkHeader = response.headers['link'];
-                hasMorePages = linkHeader && linkHeader.includes('rel="next"');
-                page++;
-            }
-
-            this.logger.logDebug(`Contributors Count fetched successfully for ${gitData.repoName}`);
-            gitData.numberOfContributors = contributorsCount;
-        } catch (error) {
-            this.logger.logDebug(`Error fetching number of contributors for ${gitData.repoName}`, error);
-        }
-    }
-    */
     async fetchContributors(gitData: gitData): Promise<void> {
         this.logger.logDebug(`Fetching contributors for ${gitData.repoName}...`);
     
@@ -404,76 +339,6 @@ export class gitAnalysis {
     }
 
     //retrieve data for number of commits
-    /*
-    async fetchCommits(gitData: gitData): Promise<void> {
-        this.logger.logDebug(`Fetching commits for ${gitData.repoName}...`);
-        try {
-            // Initialize count
-            let totalCommits = 0;
-            let page = 1;
-            let hasMoreCommits = true;
-
-            while (hasMoreCommits) {
-                const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/commits`, {
-                    params: {
-                        per_page: 100, // Max number of commits per page
-                        page: page
-                    }
-                });
-
-                // Increment total commits by the number of commits received
-                totalCommits += response.data.length;
-
-                // Check if there's more commits to fetch
-                hasMoreCommits = response.data.length === 100;
-                page++;
-            }
-            gitData.numberOfCommits = totalCommits;
-            this.logger.logDebug(`Commits Count fetched successfully for ${gitData.repoName}`);
-        } catch (error) {
-            this.logger.logDebug(`Error fetching number of commits for ${gitData.repoName}`, error);
-        }
-    }
-
-    async fetchCommits(gitData: gitData): Promise<void> {
-        this.logger.logDebug(`Fetching commits for ${gitData.repoName}...`);
-
-        try {
-            // Initialize count
-            let totalCommits = 0;
-            let page = 1;
-            let hasMoreCommits = true;
-
-            // Fetch commits with pagination and exponential backoff
-            while (hasMoreCommits) {
-                const endpoint = `/repos/${gitData.repoOwner}/${gitData.repoName}/commits`;
-                const params = {
-                    per_page: 100, // Max number of commits per page
-                    page: page
-                };
-
-                // Use exponentialBackoff to handle retries on failure
-                const response = await this.exponentialBackoff(() =>
-                    this.axiosInstance.get(endpoint, { params })
-                );
-
-                // Increment total commits by the number of commits received
-                totalCommits += response.data.length;
-
-                // Check if there are more commits to fetch (if we received a full page)
-                hasMoreCommits = response.data.length === 100;
-                page++;
-            }
-
-            // Update the gitData with the total number of commits
-            gitData.numberOfCommits = totalCommits;
-            this.logger.logDebug(`Commits Count fetched successfully for ${gitData.repoName}`);
-            
-        } catch (error) {
-            this.logger.logDebug(`Error fetching number of commits for ${gitData.repoName}`, error);
-        }
-    }
-*/
     async fetchCommits(gitData: gitData): Promise<void> {
         this.logger.logDebug(`Fetching commits for ${gitData.repoName}...`);
         try {
@@ -492,149 +357,18 @@ export class gitAnalysis {
 
                 // Increment total commits by the number of commits received
                 totalCommits += response.data.length;
-
-                // Check if there's more commits to fetch
                 hasMoreCommits = response.data.length === 100;
                 page++;
             }
 
-            // Ensure that totalCommits does not exceed 500
             gitData.numberOfCommits = totalCommits;
-
             this.logger.logDebug(`Commits Count fetched successfully for ${gitData.repoName}`);
         } catch (error) {
             this.logger.logDebug(`Error fetching number of commits for ${gitData.repoName}`, error);
         }
     }
 
-    //retrieve total number of lines
-    /*
-    async fetchLines(gitData: gitData): Promise<void> {
-        this.logger.logDebug(`Fetching lines of code for ${gitData.repoName}...`);
-
-        // Helper for determining if it's a file or directory
-        const processDirorFile = async (file: any): Promise<number> => {
-            let result = 0;
-            if (file.type === 'file') {
-                try {
-                    const fileResponse = await this.axiosInstance.get(file.download_url);
-                    if (typeof fileResponse.data === 'string'){
-                        result += fileResponse.data.split('\n').length;
-                    }
-                    return result;
-                } catch (error) {
-                    this.logger.logDebug(`Error fetching file content for ${gitData.repoName}: `, error);
-                    return result;
-                }
-            } else if (file.type === "dir") {
-                try {
-                    const directoryResponse = await this.axiosInstance.get(file.url); // Fetch directory contents
-                    const directoryFiles = directoryResponse.data;
-
-                    const filePromises = directoryFiles.map(processDirorFile);
-                    const fileLines = await Promise.all(filePromises);
-
-                    result += fileLines.reduce((sum, value) => sum + value, 0);
-                    return result;
-                } catch (error) {
-                    this.logger.logDebug(`Error fetching directory contents for ${gitData.repoName}:`, error);
-                    return result;
-                }
-            }
-            return result; // If not a file or directory
-        }
-        try {
-            let totalLines = 0;
-
-            // Fetch the list of files in the root directory
-            const response = await this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/contents`, {
-                params: { per_page: 100 } // Adjust as needed
-            });
-
-            const files = response.data;
-
-            // Process each file or directory
-            const filePromises = files.map(processDirorFile);
-            const fileLines = await Promise.all(filePromises);
-
-            // Sum up all the lines of code
-            totalLines = fileLines.reduce((sum, value) => sum + value, 0);
-            gitData.numberOfLines = totalLines;
-            this.logger.logDebug(`Lines of code fetched successfully for ${gitData.repoName}`);
-        } catch (error) {
-            this.logger.logDebug(`Error fetching number of lines for ${gitData.repoName}`, error);
-        }
-    }
-
-    async fetchLines(gitData: gitData): Promise<void> {
-        this.logger.logDebug(`Fetching lines of code for ${gitData.repoName}...`);
-
-        // Helper for determining if it's a file or directory
-        const processDirorFile = async (file: any): Promise<number> => {
-            let result = 0;
-            
-            if (file.type === 'file') {
-                try {
-                    // Use exponential backoff for file content fetching
-                    const fileResponse = await this.exponentialBackoff(() => 
-                        this.axiosInstance.get(file.download_url)
-                    );
-                    if (typeof fileResponse.data === 'string') {
-                        result += fileResponse.data.split('\n').length;
-                    }
-                    return result;
-                } catch (error) {
-                    this.logger.logDebug(`Error fetching file content for ${gitData.repoName}: `, error);
-                    return result;
-                }
-            } else if (file.type === 'dir') {
-                try {
-                    // Use exponential backoff for directory content fetching
-                    const directoryResponse = await this.exponentialBackoff(() => 
-                        this.axiosInstance.get(file.url)
-                    );
-                    const directoryFiles = directoryResponse.data;
-
-                    // Process each file or subdirectory in the directory
-                    const filePromises = directoryFiles.map(processDirorFile);
-                    const fileLines = await Promise.all(filePromises);
-
-                    result += fileLines.reduce((sum, value) => sum + value, 0);
-                    return result;
-                } catch (error) {
-                    this.logger.logDebug(`Error fetching directory contents for ${gitData.repoName}:`, error);
-                    return result;
-                }
-            }
-            return result; // If not a file or directory
-        };
-
-        try {
-            let totalLines = 0;
-
-            // Use exponential backoff for fetching root directory contents
-            const response = await this.exponentialBackoff(() =>
-                this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/contents`, {
-                    params: { per_page: 100 } // Adjust as needed
-                })
-            );
-
-            const files = response.data;
-
-            // Process each file or directory
-            const filePromises = files.map(processDirorFile);
-            const fileLines = await Promise.all(filePromises);
-
-            // Sum up all the lines of code
-            totalLines = fileLines.reduce((sum, value) => sum + value, 0);
-            gitData.numberOfLines = totalLines;
-
-            this.logger.logDebug(`Lines of code fetched successfully for ${gitData.repoName}`);
-        } catch (error) {
-            this.logger.logDebug(`Error fetching number of lines for ${gitData.repoName}:`, error);
-        }
-    }
-*/
+    //retrieve total number of lines 
     async fetchLines(gitData: gitData): Promise<void> {
         this.logger.logDebug(`Fetching lines of code for ${gitData.repoName}...`);
 
@@ -672,7 +406,6 @@ export class gitAnalysis {
 
         try {
             let totalLines = 0;
-
             // Fetch the list of files in the root directory
             const response = await this.exponentialBackoff(() =>
                 this.axiosInstance.get(`/repos/${gitData.repoOwner}/${gitData.repoName}/contents`, {
@@ -684,15 +417,13 @@ export class gitAnalysis {
 
             // Process each file or directory
             for (const file of files) {
-                if (totalLines >= 500) break; // Stop if 500 lines have been reached
-
+                if (totalLines >= 500) break;
                 const fileLines = await processDirorFile(file);
                 totalLines += fileLines;
-
                 if (totalLines >= 500) break; // Double check to stop if total exceeds 500 after processing
             }
 
-            gitData.numberOfLines = Math.min(totalLines, 500); // Ensure it doesn't exceed 500
+            gitData.numberOfLines = totalLines;
             this.logger.logDebug(`Lines of code fetched successfully for ${gitData.repoName}`);
         } catch (error) {
             this.logger.logDebug(`Error fetching number of lines for ${gitData.repoName}`, error);
@@ -730,24 +461,6 @@ export class gitAnalysis {
         };
 
         this.logger.logDebug(`Running git tasks for ${gitData.repoUrl}...`);
-/*
-        if (await this.checkConnection(url)) {
-            await this.getOwnerAndRepo(gitData);
-            [ gitData.latency.contributors,
-              gitData.latency.openIssues,
-              gitData.latency.closedIssues,
-              gitData.latency.licenses,
-              gitData.latency.numberOfCommits,
-              gitData.latency.numberOfLines
-            ] = await Promise.all([
-                this.executeTasks(this.fetchContributors.bind(this), gitData),
-                this.executeTasks(this.fetchOpenIssues.bind(this), gitData),
-                this.executeTasks(this.fetchClosedIssues.bind(this), gitData),
-                this.executeTasks(this.fetchLicense.bind(this), gitData),
-                this.executeTasks(this.fetchCommits.bind(this), gitData),
-                this.executeTasks(this.fetchLines.bind(this), gitData)
-            ]);
-*/
         if (await this.checkConnection(url)) {
             await this.getOwnerAndRepo(gitData);
             [ gitData.latency.openIssues,
