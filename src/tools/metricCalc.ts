@@ -27,7 +27,7 @@ export class metricCalc{
 
     getCorrectnessLatency(latency: repoLatencyData): number 
     {
-        return parseFloat((Math.max(latency.openIssues, latency.closedIssues) / 1000).toFixed(3));
+        return parseFloat(((latency.openIssues + latency.closedIssues) / 1000).toFixed(3));
     }
 
     calculateBusFactor(data: repoData): number 
@@ -68,13 +68,13 @@ export class metricCalc{
         if(documentation.hasDocumentation == true) doc_total += 0.14;
         if(documentation.hasReadme == false) doc_total *= 0;
 
-        const rampup = (numberOfLines > 500 ? 0.33 : 0) + (numberOfCommits > 1000 ? 0.33 : 0) + (doc_total);
+        const rampup = (numberOfLines >= 500 ? 0.33 : 0) + (numberOfCommits >= 500  ? 0.33 : 0) + (doc_total);
         return parseFloat((rampup).toFixed(3));
     }
 
     getRampupLatency(latency: repoLatencyData): number 
     {
-        return parseFloat((Math.max(latency.numberOfLines, latency.numberOfCommits, latency.documentation) / 1000).toFixed(3));
+        return parseFloat(((latency.numberOfLines + latency.numberOfCommits + latency.documentation) / 1000).toFixed(3));
     }
 
     calculateResponsiveness(data: repoData): number 
@@ -123,7 +123,8 @@ export class metricCalc{
 
     getNetScoreLatency(latency: repoLatencyData): number 
     {
-        return parseFloat((Math.max(latency.numberOfLines, latency.openIssues, latency.closedIssues, latency.openIssues, latency.licenses, latency.numberOfCommits, latency.numberOfLines, latency.documentation) / 1000).toFixed(3));
+        return parseFloat(((Math.max(latency.openIssues, latency.licenses) + latency.numberOfLines + latency.closedIssues + latency.numberOfCommits + latency.contributors) / 1000).toFixed(3));
+        //return parseFloat((Math.max(latency.numberOfLines, latency.openIssues, latency.closedIssues, latency.licenses, latency.numberOfCommits, latency.numberOfLines, latency.documentation) / 1000).toFixed(3));
     }
 
     getValue(data: repoData): metricData {
