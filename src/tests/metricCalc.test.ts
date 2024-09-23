@@ -175,7 +175,7 @@ describe('metricCalcClass', () => {
     });
 
     it('Calculate ramp-up with valid inputs', () => {
-        fakeRepoData.numberOfCommits = 900;
+        fakeRepoData.numberOfCommits = 200;
         const rampup = metricClass.calculateRampup(fakeRepoData);
         expect(rampup).toEqual(0); 
     });

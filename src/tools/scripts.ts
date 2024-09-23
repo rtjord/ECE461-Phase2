@@ -26,13 +26,13 @@ export class runAnalysis {
             process.exit(1);
         }
         const start = performance.now();
-        const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index), { concurrency: 10 });
+        const repoDataPromises = urls.map((url, index) => this.evaluateMods(url, index));
         const repoDataArr = await Promise.all(repoDataPromises);
         const end = performance.now();
         this.logger.logInfo(`Total time taken: ${parseFloat(((end - start) / 1000).toFixed(3))} s`);
         return repoDataArr;
     }
-*/
+    
     async runAnalysis(urls: string[]): Promise<repoData[]> {
         const isTokenValid = await this.gitAnalysis.isTokenValid();
         if (!isTokenValid) {
@@ -42,12 +42,34 @@ export class runAnalysis {
 
         const start = performance.now();
         const Promise = require('bluebird');
-        const repoDataArr = await Promise.map(urls, async (url: string, index: number) => this.evaluateMods(url, index), { concurrency: 3 });
+        const repoDataArr: repoData[] = await Promise.map(urls, 
+                            async (url: string, index: number) => 
+                            this.evaluateMods(url, index), 
+                            { concurrency: 2 });
         //const repoDataArr = await Promise.all(repoDataPromises);
         const end = performance.now();
         this.logger.logInfo(`Total time taken: ${parseFloat(((end - start) / 1000).toFixed(3))} s`);
         return repoDataArr;
-    }
+    }  
+*/
+
+    async runAnalysis(urls: string[]): Promise<repoData[]> {
+        const isTokenValid = await this.gitAnalysis.isTokenValid();
+        if (!isTokenValid) {
+            process.stdout.write('No valid token provided\n');
+            process.exit(1);
+        }
+
+        const start = performance.now();
+        const repoDataArr: repoData[] = [];
+        for (const [index, url] of urls.entries()) {
+            const repoData = await this.evaluateMods(url, index);
+            repoDataArr.push(repoData); // Collect the results one by one
+        }
+        const end = performance.now();
+        this.logger.logInfo(`Total time taken: ${parseFloat(((end - start) / 1000).toFixed(3))} s`);
+        return repoDataArr;
+    } 
 
     async evaluateMods(url: string, index: number): Promise<repoData> {
         const [type, cleanedUrl] = await this.urlAnalysis.evalUrl(url);
