@@ -172,7 +172,6 @@ export class gitAnalysis {
         let isValid = false;
         try {
             const response = await this.axiosInstance.get('https://api.github.com/graphql');
-            console.log(response)
             isValid = response.status === 200;
         } catch (error) {
             isValid = false;

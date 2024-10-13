@@ -48,7 +48,7 @@ describe('gitAnalysisClass', () => {
     it('should have a valid token', async () => {
         const result = await gitAnalysisInstance.isTokenValid();
         expect(result).toBe(true);
-    });
+    }, 15000);
 
     // Test good connection
     it('should have a connection to the url', async () => {
