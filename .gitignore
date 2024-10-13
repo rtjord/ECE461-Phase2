@@ -3,7 +3,6 @@ files/
 *.env
 
 ## Package Files ##
-package-lock.json
 node_modules/
 coverage/
 
