@@ -171,7 +171,7 @@ export class gitAnalysis {
     async isTokenValid(): Promise<boolean> {
         let isValid = false;
         try {
-            const response = await this.axiosInstance.get('https://api.github.com/graphql');
+            const response = await this.axiosInstance.get('/repos/Tridentinus/dummyPackage');
             isValid = response.status === 200;
         } catch (error) {
             isValid = false;
