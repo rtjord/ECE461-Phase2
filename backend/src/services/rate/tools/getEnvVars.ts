@@ -6,7 +6,7 @@ export class getEnvVars {
     public token: string;
 
     constructor() {
-        dotenv.config({ path: '../.env' });
+        dotenv.config();
         const token = process.env.GITHUB_TOKEN;
         if (token === undefined) {
             process.stderr.write(`GITHUB_TOKEN is undefined\n`);
