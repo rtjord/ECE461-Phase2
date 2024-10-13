@@ -1,0 +1,14 @@
+## Sensitive Files ##
+files/
+*.env
+
+## Package Files ##
+node_modules/
+coverage/
+
+## tsc files ##
+dist/
+*.js
+
+## log files  ##
+*.log
