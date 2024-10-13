@@ -35,7 +35,7 @@ jobs:
         run: npm run build
 
       - name: Run tests
-        run: npm test git
+        run: npm test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LOG_FILE: test.log
