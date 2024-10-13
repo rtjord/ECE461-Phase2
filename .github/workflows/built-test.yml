@@ -2,13 +2,13 @@ name: build-test
 on: push
 
 permissions:
-  contents: read        # For repository contents
-  actions: read         # For accessing actions
-  repository-projects: read  # If you need to access project boards
-  metadata: read        # To access user metadata
-  issues: read          # If you need issue-related access
-  pull-requests: read    # For pull requests
-  members: read         # For team member access (if needed)
+  contents: read
+  actions: read
+  repository-projects: read
+  metadata: read
+  issues: read
+  pull-requests: read
+  members: read
 
 jobs:
   build-test:
