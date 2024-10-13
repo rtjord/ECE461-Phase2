@@ -4,7 +4,7 @@ import { getEnvVars } from '../tools/getEnvVars';
 import { repoData } from '../utils/interfaces';
 
 // Mock Data for Testing
-const url = "https://github.com/phillips302/ECE461"
+const url = "https://github.com/phillips302/ECE461";
 
 const fakeRepoData: repoData = {
     repoName: '',

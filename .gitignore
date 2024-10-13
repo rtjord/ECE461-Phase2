@@ -8,5 +8,8 @@ node_modules/
 coverage/
 
 ## tsc files ##
-srcJS/
+dist/
 *.js
+
+## log files  ##
+*.log
