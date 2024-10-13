@@ -1,29 +1,38 @@
 name: build-test
 on: push
-jobs: 
-  build:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  build-test:
     runs-on: ubuntu-latest
-    steps: 
-      - name: checkout repo
+    steps:
+      - name: Checkout repository
         uses: actions/checkout@v3
-      - name: use node.js
+
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
-      - run: npm install
-      - run: npm run build
-  test: 
-    needs: build
-    runs-on: ubuntu-latest
-    steps: 
-      - name: checkout repo
-        uses: actions/checkout@v3
-      - name: use node.js
-        uses: actions/setup-node@v3
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
         with:
-          node-version: '18.x'
-      - run: npm install
-      - run: npm test
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the project
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LOG_FILE: test.log
