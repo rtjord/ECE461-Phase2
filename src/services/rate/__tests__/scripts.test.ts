@@ -4,7 +4,7 @@ import { envVars } from '../utils/interfaces';
 import { getEnvVars } from '../tools/getEnvVars';
 
 // Mock Data for Testing
-const url = "https://github.com/phillips302/ECE461"
+const url = "https://github.com/phillips302/ECE461";
 
 let fakeRepoData: repoData = {
     repoName: '',
@@ -77,7 +77,7 @@ describe('runAnalysisClass', () => {
     it('should have a valid token', async () => {
         const result = await runAnalysisInstance.runAnalysis([url]);
         expect(result).not.toBe([fakeRepoData]);
-    });
+    }, 15000);
 
     // Test run analysis with bad url
     it('should have a valid token', async () => {

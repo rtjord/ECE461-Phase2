@@ -111,7 +111,7 @@ export class npmAnalysis {
     
     // Main function to run the tasks in order
     async runTasks(url: string, dest: number): Promise<npmData> {
-        const repoDir = './srcJS/repoDir'+dest.toString();
+        const repoDir = './dist/repoDir'+dest.toString();
         this.logger.logDebug(`Running npm tasks in ${repoDir}...`);
         let npmData: npmData = {
             repoUrl: url,
@@ -171,7 +171,7 @@ export class gitAnalysis {
     async isTokenValid(): Promise<boolean> {
         let isValid = false;
         try {
-            const response = await this.axiosInstance.get('https://api.github.com/user');
+            const response = await this.axiosInstance.get('/repos/Tridentinus/dummyPackage');
             isValid = response.status === 200;
         } catch (error) {
             isValid = false;

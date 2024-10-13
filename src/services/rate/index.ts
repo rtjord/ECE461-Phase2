@@ -51,7 +51,7 @@ program
         }
 
         try {
-            exec('npx jest --coverage ./srcJS/tests/', (error, stdout, stderr) => {
+            exec('npx jest --coverage', (error, stdout, stderr) => {
                 let totalTests = '0';
                 let passedTests = '0';
                 let coverage = '0';

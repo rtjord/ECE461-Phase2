@@ -4,7 +4,7 @@ import { getEnvVars } from '../tools/getEnvVars';
 import { repoData } from '../utils/interfaces';
 
 // Mock Data for Testing
-const url = "https://github.com/phillips302/ECE461"
+const url = "https://github.com/phillips302/ECE461";
 
 const fakeRepoData: repoData = {
     repoName: '',
@@ -48,7 +48,7 @@ describe('gitAnalysisClass', () => {
     it('should have a valid token', async () => {
         const result = await gitAnalysisInstance.isTokenValid();
         expect(result).toBe(true);
-    });
+    }, 15000);
 
     // Test good connection
     it('should have a connection to the url', async () => {
