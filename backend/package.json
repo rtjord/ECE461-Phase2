@@ -9,7 +9,7 @@
     "test": "npx jest --coverage",
     "run": "node dist/index.js"
   },
-  "author": "Garrett Phillips, Ethan James, Riley Thomas, Nilayah Peter",
+  "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^29.5.13",
