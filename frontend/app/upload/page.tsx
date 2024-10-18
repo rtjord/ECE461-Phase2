@@ -30,17 +30,32 @@ export default function UploadFile() {
       console.log('Base64 data:', base64data);
       try {
         // Send the base64-encoded file to the Lambda function
-        const response = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL + '/upload', {
+        const form = event.target as HTMLFormElement;
+        const packageName = (form.elements.namedItem('packageName') as HTMLInputElement).value;
+        const author = (form.elements.namedItem('author') as HTMLInputElement).value;
+        const version = (form.elements.namedItem('version') as HTMLInputElement).value;
+
+        const queryParams = new URLSearchParams({
+          packageName,
+          version,
+          fileName: selectedFile.name,
+        }).toString();
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload?${queryParams}`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json', // Set the content type to JSON
+            'Content-Type': 'application/json', // Send request as JSON
           },
-          body: JSON.stringify({ body: base64data }), // Send base64-encoded data
+          body: JSON.stringify({
+            body: base64data, // Base64-encoded file content
+            author, // Include the author if necessary for your backend logic
+          }),
         });
 
         // Check if the file was uploaded successfully
         if (response.ok) {
-          setUploadStatus('File uploaded successfully!');
+          const responseData = await response.json();
+          setUploadStatus(`File uploaded successfully! File URL: ${responseData.fileUrl}`);
         } else {
           const errorData = await response.json();
           setUploadStatus(`Failed to upload file: ${errorData.message}`);
@@ -55,9 +70,9 @@ export default function UploadFile() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <input type="text" placeholder="Package Name" style={{ width: '200px' }} />
-        <input type="text" placeholder="Author" style={{ width: '200px' }} />
-        <input type="text" placeholder="Version" style={{ width: '200px' }} />
+        <input type="text" name="packageName" placeholder="Package Name" style={{ width: '200px' }} />
+        <input type="text" name="author" placeholder="Author" style={{ width: '200px' }} />
+        <input type="text" name="version" placeholder="Version" style={{ width: '200px' }} />
         <input type="file" accept=".zip" onChange={handleFileChange} />
         <button type="submit" style={{ alignSelf: 'flex-start' }}>Upload</button>
       </form>
@@ -65,3 +80,4 @@ export default function UploadFile() {
     </div>
   );
 }
+
