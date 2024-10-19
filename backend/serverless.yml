@@ -1,0 +1,226 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: ece461team5
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: backend
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-2
+
+functions:
+  packagesList:
+    handler: src/handlers/packagesList.handler
+    events:
+      - http:
+          path: packages
+          method: post
+          request:
+            parameters:
+              query:
+                offset: false # Optional query parameter for pagination
+              headers:
+                X-Authorization: true # Required header
+            requestBody:
+              description: "Request body containing an array of PackageQuery objects."
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PackageQuery' # Reference your PackageQuery schema here
+            responses:
+              '200':
+                description: "List of packages"
+                headers:
+                  offset:
+                    description: "The offset to use in the next query."
+                    type: string
+                bodyType: 'PackageMetadata' # Specify the response schema type here
+              '400':
+                description: "There is missing field(s) in the PackageQuery or it is formed improperly, or is invalid."
+              '403':
+                description: "Authentication failed due to invalid or missing AuthenticationToken."
+              '413':
+                description: "Too many packages returned."
+
+  registryReset:
+    handler: src/handlers/registryReset.handler
+    events:
+      - http:
+          path: reset
+          method: delete
+          request:
+            parameters:
+              headers:
+                X-Authorization: true # Required header
+          responses:
+            '200':
+              description: "Registry is reset."
+            '401':
+              description: "You do not have permission to reset the registry."
+            '403':
+              description: "Authentication failed due to invalid or missing AuthenticationToken."
+
+  authenticate:
+    handler: src/handlers/authenticate.handler # Replace with your handler file and function
+    events:
+      - http:
+          path: authenticate
+          method: put
+          cors: true # Enable CORS if necessary
+          request:
+            schema:
+              application/json:
+                # Include the schema for AuthenticationRequest here
+                "$ref": "#/components/schemas/AuthenticationRequest" # Reference to your schema
+            requestBody:
+              content:
+                application/json:
+                  schema:
+                    "$ref": "#/components/schemas/AuthenticationRequest"
+                  examples:
+                    ExampleRequest:
+                      value:
+                        User:
+                          name: ece30861defaultadminuser
+                          isAdmin: true
+                        Secret:
+                          password: correcthorsebatterystaple123(!__+@**(A'"`;DROP TABLE packages;
+          responses:
+            "200":
+              description: Return an AuthenticationToken.
+              body:
+                content:
+                  application/json:
+                    schema:
+                      "$ref": "#/components/schemas/AuthenticationToken"
+                    examples:
+                      ExampleResponse:
+                        value: '"bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"'
+            "400":
+              description: There are missing field(s) in the AuthenticationRequest or it is formed improperly.
+            "401":
+              description: The user or password is invalid.
+            "501":
+              description: This system does not support authentication.
+  packageByName:
+    handler: src/handlers/packageByName.handler  # Path to your function handler
+    events:
+      - http:
+          path: package/byName/{name}
+          method: get
+          request:
+            parameters:
+              paths:
+                name: true
+              headers:
+                X-Authorization: true
+            responses:
+              '200':
+                description: Return the package history.
+                bodyType: PackageHistoryEntry[]  # Refer to your schema
+              '400':
+                description: There are missing fields in the PackageName or it is formed improperly, or is invalid.
+              '403':
+                description: Authentication failed due to invalid or missing AuthenticationToken.
+              '404':
+                description: No such package.
+
+  packageByRegEx:
+    handler: src/handlers/packageByRegEx.handler
+    events:
+      - http:
+          path: package/byRegEx
+          method: post
+          request:
+            body:
+              type: object
+              properties:
+                RegEx:
+                  type: string
+              required:
+                - RegEx
+            headers:
+              X-Authorization: true
+            responses:
+              '200':
+                description: Return a list of packages.
+                bodyType: PackageMetadata[]  # Refer to your schema
+              '400':
+                description: There are missing fields in the PackageRegEx or it is formed improperly, or is invalid.
+              '403':
+                description: Authentication failed due to invalid or missing AuthenticationToken.
+              '404':
+                description: No package found under this regex.
+  getTracks:
+    handler: src/handlers/getTracks.handler
+    events:
+      - http:
+          path: tracks
+          method: get
+          cors: true
+          responses:
+            "200":
+              description: Return the list of tracks the student plans to implement
+              body:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        plannedTracks:
+                          type: array
+                          description: "List of tracks the student plans to implement"
+                          items:
+                            type: string
+                            enum:
+                              - "Performance track"
+                              - "Access control track"
+                              - "High assurance track"
+                              - "ML inside track"
+            "500":
+              description: The system encountered an error while retrieving the student's track information.
+
+# Optional: Specify resources if needed (like DynamoDB tables)
+resources:
+  Resources:
+    ApiGatewayRestApi:
+      Type: 'AWS::ApiGateway::RestApi'
+      Properties:
+        Name: ECE 461 - Fall 2024 - Project Phase 2
+    MyDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: PackageMetaData
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+        # Example schema definition (if needed)
+
+    PackageQuery:
+      Type: 'AWS::ApiGateway::Model'
+      Properties:
+        ContentType: 'application/json'
+        Schema: 
+          # Your JSON Schema for PackageQuery here
+
+    PackageMetadata:
+      Type: 'AWS::ApiGateway::Model'
+      Properties:
+        ContentType: 'application/json'
+        Schema:
+          # Your JSON Schema for PackageMetadata here
+    
+    AuthenticationToken:
+      Type: 'AWS::ApiGateway::Model'
+      Properties:
+        ContentType: 'application/json'
+        Schema:
+          # Your JSON Schema for AuthenticationToken here
