@@ -5,16 +5,25 @@ service: backend
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs18.x
   region: us-east-2
 
 functions:
   packagesList:
-    handler: src/handlers/packagesList.handler
+    handler: src/handlers/packagesList.handler  # path to handler function
+    # Memory size (default: 1024MB)
+    memorySize: 512
+    # Timeout (default: 6 seconds)
+    timeout: 3
+    environment:
+      # Environment variables
+    description: "List all packages."
     events:
       - http:
           path: packages
           method: post
+          cors: true
+          # Configure method request and integration request settings
           request:
             parameters:
               query:
@@ -28,7 +37,7 @@ functions:
                   schema:
                     type: array
                     items:
-                      $ref: '#/components/schemas/PackageQuery' # Reference your PackageQuery schema here
+                      $ref: '#/components/schemas/PackageQuery'
             responses:
               '200':
                 description: "List of packages"
@@ -53,7 +62,9 @@ functions:
           request:
             parameters:
               headers:
-                X-Authorization: true # Required header
+                X-Authorization: true
+                schema:
+                  $ref: '#/components/schemas/AuthenticationToken'
           responses:
             '200':
               description: "Registry is reset."
@@ -61,6 +72,67 @@ functions:
               description: "You do not have permission to reset the registry."
             '403':
               description: "Authentication failed due to invalid or missing AuthenticationToken."
+  
+getPackageById:
+    handler: handler.getPackageById
+    events:
+      - http:
+          path: packages/{id}
+          method: get
+          cors: true
+          request:
+            parameters:
+              paths:  # Path parameters
+                id:
+                  description: "ID of package to fetch."
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/PackageID'
+          responses:
+            '200':
+              description: "Return the package. Cncent is required"
+              content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Package'
+            '400':
+              description: "There is missing field(s) in the PackageID or it is formed improperly, or is invalid."
+            '403':
+              description: "Authentication failed due to invalid or missing AuthenticationToken."
+            '404':
+              description: "Package does nt exist."
+
+updatePackage:
+  handler: handler.updatePackage
+  events:
+    - http:
+        path: packages/{id}
+        method: put
+        request:
+          parameters:
+            paths:
+              id: 
+                required: true
+          headers:
+            X-Authorization: true
+        cors: true
+        request:
+          schemas:
+            application/json: ${file(models/Package.json)}
+
+deletePackage:
+  handler: handler.deletePackage
+  events:
+    - http:
+        path: packages/{id}
+        method: delete
+        request:
+          parameters:
+            paths:
+              id: true
+          headers:
+            X-Authorization: true
+        cors: true
 
   authenticate:
     handler: src/handlers/authenticate.handler # Replace with your handler file and function
@@ -182,14 +254,33 @@ functions:
             "500":
               description: The system encountered an error while retrieving the student's track information.
 
-# Optional: Specify resources if needed (like DynamoDB tables)
+layers:
+  # A Lambda layer
+  servicesLayer:
+    # required, path to layer contents on disk
+    path: src/services
+    # optional, Description to publish to AWS
+    description: Description of what the lambda layer does
+    # optional, a list of runtimes this layer is compatible with
+    compatibleRuntimes:
+      - nodejs18.x
+    # optional, a list of AWS account IDs allowed to access this layer.
+    allowedAccounts:
+      - '*'
+    # optional, false by default. If true, layer versions are not deleted as new ones are created
+    retain: false
+
 resources:
   Resources:
     ApiGatewayRestApi:
       Type: 'AWS::ApiGateway::RestApi'
       Properties:
         Name: ECE 461 - Fall 2024 - Project Phase 2
-    MyDynamoDBTable:
+        Description: "API Gateway for ECE 461 - Fall 2024 - Project Phase 2"
+        FailOnWarnings: true
+
+    # DynamoDB table for storing package metadata
+    MetaDataTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: PackageMetaData
@@ -200,9 +291,26 @@ resources:
           - AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
         # Example schema definition (if needed)
+
+    # DynamoDB table for storing user information
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Users
+        AttributeDefinitions:
+          - AttributeName: name
+            AttributeType: S
+          - AttributeName: isAdmin
+            AttributeType: S
+        KeySchema:
+          - AttributeName: name
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
 
     PackageQuery:
       Type: 'AWS::ApiGateway::Model'
@@ -514,11 +622,6 @@ components:
         RegEx:
           description: A regular expression over package names and READMEs that is used to search packages.
           type: string
-
-    UserIdentification:
-      description: |-
-        An internal ID that uniquely identifies a user (can be an email address).
-      type: string
 
     PackageSuggestion:
       description: A suggestion for a package (based on popularity, etc.).
