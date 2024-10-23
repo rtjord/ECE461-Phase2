@@ -23,11 +23,10 @@ functions:
           path: packages
           method: post
           cors: true
-          # Configure method request and integration request settings
           request:
             parameters:
               query:
-                offset: false # Optional query parameter for pagination
+                offset: false
               headers:
                 X-Authorization: true # Required header
             requestBody:
@@ -44,9 +43,12 @@ functions:
                 headers:
                   offset:
                     description: "The offset to use in the next query."
-                    type: string
-                bodyType: 'PackageMetadata' # Specify the response schema type here
-              '400':
+                    schema:
+                      $ref: '#/components/schemas/EnumerateOffset'
+                body:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/PackageMetadata'
                 description: "There is missing field(s) in the PackageQuery or it is formed improperly, or is invalid."
               '403':
                 description: "Authentication failed due to invalid or missing AuthenticationToken."
